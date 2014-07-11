@@ -103,8 +103,6 @@ void aiousb_assertion_message(const char *domain,
               " ",
               message 
               );
-    /* fprintf(aio_assert_fh, "**\n%s\n", s); */
-    /* printf("\n%s\n", s); */
     fprintf(aio_assert_fh, "\n%s\n", s);
     /* g_test_log (G_TEST_LOG_ERROR, s, NULL, 0, NULL); */
 
