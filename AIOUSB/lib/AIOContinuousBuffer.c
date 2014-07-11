@@ -18,7 +18,7 @@
 #include "AIOContinuousBuffer.h"
 #include "AIOChannelMask.h"
 #include "AIOUSB_Core.h"
-
+#include "AIOUSB_Assert.h"
 
 #ifdef __cplusplus
 namespace AIOUSB {
@@ -79,7 +79,7 @@ void *RawCountsWorkFunction( void *object );
 
 AIOContinuousBuf *NewAIOContinuousBufForCounts( unsigned long DeviceIndex, unsigned scancounts, unsigned num_channels )
 {
-    assert( num_channels > 0 );
+    aio_assert( num_channels > 0 );
     AIOContinuousBuf *tmp  = NewAIOContinuousBufWithoutConfig( DeviceIndex, scancounts, num_channels, AIOUSB_TRUE );
     AIOContinuousBuf_SetCallback( tmp, RawCountsWorkFunction );
     return tmp;
@@ -98,7 +98,7 @@ AIOContinuousBuf *NewAIOContinuousBufWithoutConfig( unsigned long DeviceIndex,
                                                     unsigned num_channels , 
                                                     AIOUSB_BOOL counts )
 {
-    assert( num_channels > 0 );
+    aio_assert( num_channels > 0 );
     AIOContinuousBuf *tmp  = (AIOContinuousBuf *)malloc(sizeof(AIOContinuousBuf));
     tmp->mask              = NewAIOChannelMask( num_channels );
 
@@ -568,7 +568,7 @@ AIORET_TYPE AIOContinuousBuf_SmartCountsToVolts( AIOContinuousBuf *buf,
     AIORET_TYPE retval = 0;
     DeviceDescriptor *deviceDesc = AIOUSB_GetDevice_NoCheck( AIOContinuousBuf_GetDeviceIndex(buf));
     int number_channels = AIOContinuousBuf_NumberChannels(buf);
-    assert(channel);
+    aio_assert(channel);
     if( ! deviceDesc ) {
       retval = -1;
     } else {
@@ -595,8 +595,8 @@ AIORET_TYPE AIOContinuousBuf_SmartCountsToVolts( AIOContinuousBuf *buf,
  */
 AIORET_TYPE AIOContinuousBuf_CopyData( AIOContinuousBuf *buf , unsigned short *data , unsigned *size )
 {
-     assert(data);
-     assert(*size > 0 );
+     aio_assert(data);
+     aio_assert(*size > 0 );
      unsigned i = 0, write_count = 0;
      AIORET_TYPE retval;
      unsigned tmpcount, channel = 0, pos = 0;
@@ -1471,7 +1471,7 @@ void AIOContinuousBuf_SetDiscardFirstSample(  AIOContinuousBuf *buf , AIOUSB_BOO
 
 unsigned long AIOContinuousBuf_GetDeviceIndex( AIOContinuousBuf *buf )
 {
-    assert( buf->DeviceIndex >= 0 );
+    aio_assert( buf->DeviceIndex >= 0 );
     return (unsigned long)buf->DeviceIndex;
 }
 

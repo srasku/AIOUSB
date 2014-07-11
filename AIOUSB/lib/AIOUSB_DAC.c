@@ -7,7 +7,7 @@
  */
 
 #include "AIOUSB_Core.h"
-#include <assert.h>
+#include "AIOUSB_Assert.h"
 #include <math.h>
 #include <string.h>
 
@@ -197,7 +197,7 @@ unsigned long DACMultiDirect( unsigned long DeviceIndex,
     const int numConfigBlocks = (highestChannel / DACS_PER_BLOCK) + 1;
     const int configBytes = CONFIG_BLOCK_BYTES * numConfigBlocks;
     unsigned char *const configBuffer = ( unsigned char* )malloc(configBytes);
-    assert(configBuffer != 0);
+    aio_assert(configBuffer != 0);
     if (configBuffer != 0) {
         /*
          * sparsely populate DAC configuration blocks

@@ -8,6 +8,7 @@
  */
 
 #include "AIOUSB_Core.h"
+#include "AIOUSB_Assert.h"
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -197,7 +198,7 @@ static const char VERSION_DATE[] = "$Format: %ad$";
  */
 
 AIOUSB_BOOL AIOUSB_Lock() {
-    assert(AIOUSB_IsInit());
+    aio_assert(AIOUSB_IsInit());
 #if defined(AIOUSB_ENABLE_MUTEX)
     return(pthread_mutex_lock(&aiousbMutex) == 0);
 #else
@@ -206,7 +207,7 @@ AIOUSB_BOOL AIOUSB_Lock() {
 }
 
 AIOUSB_BOOL AIOUSB_UnLock() {
-    assert(AIOUSB_IsInit());
+    aio_assert(AIOUSB_IsInit());
 #if defined(AIOUSB_ENABLE_MUTEX)
     return(pthread_mutex_unlock(&aiousbMutex) == 0);
 #else
@@ -218,7 +219,7 @@ AIOUSB_BOOL AIOUSB_UnLock() {
 unsigned long AIOUSB_Validate_Lock(unsigned long *DeviceIndex)
 {
     unsigned long result = (unsigned long)AIOUSB_SUCCESS;
-    assert(DeviceIndex != 0);
+    aio_assert(DeviceIndex != 0);
 
     if ( !AIOUSB_Lock() )
         return AIOUSB_ERROR_INVALID_MUTEX;
@@ -284,7 +285,7 @@ unsigned long AIOUSB_Validate_Lock(unsigned long *DeviceIndex)
 
 
 unsigned long AIOUSB_Validate(unsigned long *DeviceIndex) {
-    assert(DeviceIndex != 0);
+    aio_assert(DeviceIndex != 0);
     if(!AIOUSB_Lock())
         return AIOUSB_ERROR_INVALID_MUTEX;
 
@@ -598,7 +599,7 @@ void _setup_device_parameters( DeviceDescriptor *deviceDesc , unsigned long prod
     if(deviceDesc->DIOBytes > 0) {
         /* calloc() zeros memory */
         deviceDesc->LastDIOData = ( unsigned char* )calloc(deviceDesc->DIOBytes, sizeof(unsigned char));
-        assert(deviceDesc->LastDIOData != 0);
+        aio_assert(deviceDesc->LastDIOData != 0);
     }
 }
 
@@ -646,7 +647,7 @@ void PopulateDeviceTable(void) {
           for(index = 0; index < numDevices && numAccesDevices < MAX_USB_DEVICES; index++) {
                 struct libusb_device_descriptor libusbDeviceDesc;
                 libusb_device *const device = deviceList[ index ];
-                assert(device != 0);
+                aio_assert(device != 0);
                 const int libusbResult = libusb_get_device_descriptor(device, &libusbDeviceDesc);
                 if(libusbResult == LIBUSB_SUCCESS) {
                       if(libusbDeviceDesc.idVendor == ACCES_VENDOR_ID) {
@@ -698,7 +699,7 @@ static void CloseAllDevices(void) {
 
 static int CompareProductIDs(const void *p1, const void *p2)
 {
-    assert(p1 != 0 &&
+    aio_assert(p1 != 0 &&
            (*( ProductIDName** )p1) != 0 &&
            p2 != 0 &&
            (*( ProductIDName** )p2) != 0);
@@ -767,7 +768,7 @@ PRIVATE const char *ProductIDToName(unsigned int productID) {
 
 
 static int CompareProductNames(const void *p1, const void *p2) {
-    assert(p1 != 0 &&
+    aio_assert(p1 != 0 &&
            (*( ProductIDName** )p1) != 0 &&
            p2 != 0 &&
            (*( ProductIDName** )p2) != 0);
@@ -794,7 +795,7 @@ static int CompareProductNames(const void *p1, const void *p2) {
  * @return
  */
 PRIVATE unsigned int ProductNameToID(const char *name) {
-    assert(name != 0);
+    aio_assert(name != 0);
 
     unsigned int productID = 0;
     if(AIOUSB_Lock()) {
@@ -836,7 +837,7 @@ PRIVATE unsigned int ProductNameToID(const char *name) {
 }
 
 static unsigned long GetDeviceName(unsigned long DeviceIndex, const char **name) {
-    assert(name != 0);
+    aio_assert(name != 0);
     if(!AIOUSB_Lock())
         return AIOUSB_ERROR_INVALID_MUTEX;
 
@@ -856,7 +857,7 @@ static unsigned long GetDeviceName(unsigned long DeviceIndex, const char **name)
           AIOUSB_UnLock();                                                    // unlock while communicating with device
           const int MAX_NAME_SIZE = 100;                      // characters, not bytes
           char *const deviceName = ( char* )malloc(MAX_NAME_SIZE + 2);                // characters, null-terminated
-          assert(deviceName != 0);
+          aio_assert(deviceName != 0);
           if(deviceName != 0) {
                 libusb_device_handle *const deviceHandle = AIOUSB_GetDeviceHandle(DeviceIndex);
                 if(deviceHandle != 0) {
@@ -870,7 +871,7 @@ static unsigned long GetDeviceName(unsigned long DeviceIndex, const char **name)
                       const int DESC_PARAMS = 0x0302;           /**03 = descriptor type: string; 02 = index */
                       const int MAX_DESC_SIZE = 256;           // bytes, not characters
                       unsigned char *const descData = ( unsigned char* )malloc(MAX_DESC_SIZE);
-                      assert(descData != 0);
+                      aio_assert(descData != 0);
                       if(descData != 0) {
                             const int bytesTransferred = libusb_control_transfer(deviceHandle,
                                                                                  USB_READ_FROM_DEVICE,
@@ -1021,7 +1022,7 @@ PRIVATE int AIOUSB_BulkTransfer(
                                 int *transferred,
                                 unsigned int timeout
                                 ) {
-    assert(dev_handle != 0 &&
+    aio_assert(dev_handle != 0 &&
            data != 0 &&
            transferred != 0);
     int libusbResult = LIBUSB_SUCCESS;
@@ -2032,7 +2033,7 @@ unsigned long AIOUSB_MultipleVoltsToCounts(
  */
 void AIOUSB_InitConfigBlock(ADConfigBlock *config, unsigned long DeviceIndex, AIOUSB_BOOL defaults)
 {
-    assert(config != 0);
+    aio_assert(config != 0);
     if(config != 0) {
 /*
  * mark as uninitialized unless this function succeeds
@@ -2044,7 +2045,7 @@ void AIOUSB_InitConfigBlock(ADConfigBlock *config, unsigned long DeviceIndex, AI
                       const DeviceDescriptor *const deviceDesc = &deviceTable[ DeviceIndex ];
                       config->device = deviceDesc;
                       config->size = deviceDesc->ConfigBytes;
-                      assert(config->size == AD_CONFIG_REGISTERS ||
+                      aio_assert(config->size == AD_CONFIG_REGISTERS ||
                              config->size == AD_MUX_CONFIG_REGISTERS);
                       if(defaults) {
                             AIOUSB_SetAllGainCodeAndDiffMode(config, AD_GAIN_CODE_0_10V, AIOUSB_FALSE);
@@ -2094,7 +2095,7 @@ unsigned long AIOUSB_ADC_LoadCalTable(
 
     AIOUSB_UnLock();
     unsigned short *const calTable = ( unsigned short* )malloc(CAL_TABLE_WORDS * sizeof(unsigned short));
-    assert(calTable != 0);
+    aio_assert(calTable != 0);
     if(calTable != 0) {
           struct stat fileInfo;
           if(stat(fileName, &fileInfo) == 0) {

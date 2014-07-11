@@ -20,7 +20,8 @@ AIOContinuousBuffer.o \
 AIOChannelMask.o \
 AIOUSB_Properties.o \
 AIODeviceInfo.o \
-DIOBuf.o
+DIOBuf.o \
+AIOUSB_Assert.o
 
 include $(AIOUSB_ROOT)/Mkfiles/oses.inc
 

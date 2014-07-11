@@ -8,24 +8,21 @@
 
 
 #include "AIOUSB_Core.h"
+#include "AIOUSB_Assert.h"
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-
-
 #ifdef __cplusplus
 namespace AIOUSB {
 #endif
 
 
-
-
 static int CompareVoltage(const void *p1, const void *p2)
 {
-    assert(p1 != 0 &&
+    aio_assert(p1 != 0 &&
            p2 != 0);
     const double voltage1 = *( double* )p1, voltage2 = *( double* )p2;
     if(voltage1 < voltage2)
@@ -118,7 +115,7 @@ AIOUSB_ADC_ExternalCal(
      */
     const int WORKING_COLUMNS = 4, COLUMN_SLOPE = 2, COLUMN_OFFSET = 3;
     double *const workingPoints = ( double* )malloc(numPoints * WORKING_COLUMNS * sizeof(double));
-    assert(workingPoints != 0);
+    aio_assert(workingPoints != 0);
     if(workingPoints != 0) {
       /*
        * copy user's table to our working table and set slope and offset to valid values

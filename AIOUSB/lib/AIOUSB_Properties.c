@@ -11,6 +11,7 @@
  */
 
 #include "AIOUSB_Core.h"
+#include "AIOUSB_Assert.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -201,7 +202,7 @@ unsigned long AIOUSB_GetDeviceProperties(unsigned long DeviceIndex,DevicePropert
 /*----------------------------------------------------------------------------*/
 static int CompareResultCodes(const void *p1, const void *p2)
 {
-    assert(p1 != 0 &&
+    aio_assert(p1 != 0 &&
            (*( struct ResultCodeName** )p1) != 0 &&
            p2 != 0 &&
            (*( struct ResultCodeName** )p2) != 0);

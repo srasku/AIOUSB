@@ -8,6 +8,7 @@
 
 #include "AIOUSB_DIO.h"
 #include "AIOUSB_Core.h"
+#include "AIOUSB_Assert.h"
 #include <arpa/inet.h>
 
 #ifdef __cplusplus
@@ -16,7 +17,7 @@ namespace AIOUSB {
 
 /*----------------------------------------------------------------------------*/
 static unsigned short OctaveDacFromFreq(double *Hz) {
-    assert(Hz != 0);
+    aio_assert(Hz != 0);
     unsigned short octaveOffset = 0;
     if(*Hz > 0) {
           if(*Hz > 40000000.0)
@@ -180,14 +181,14 @@ unsigned long DIO_ConfigureRaw(
         return AIOUSB_ERROR_NOT_SUPPORTED;
     }
     if(deviceDesc->LastDIOData != 0) {
-        assert(deviceDesc->DIOBytes <= 1000);       // arbitrary sanity check
+        aio_assert(deviceDesc->DIOBytes <= 1000);       // arbitrary sanity check
         memcpy(deviceDesc->LastDIOData, pData, deviceDesc->DIOBytes);
         libusb_device_handle *const deviceHandle = AIOUSB_GetDeviceHandle(DeviceIndex);
         if(deviceHandle != NULL) {
             const int maskBytes = (deviceDesc->DIOBytes + BITS_PER_BYTE - 1) / BITS_PER_BYTE;
             const int bufferSize = deviceDesc->DIOBytes + 2 * maskBytes;
             unsigned char *const configBuffer = ( unsigned char* )malloc(bufferSize);
-            assert(configBuffer != 0);
+            aio_assert(configBuffer != 0);
             if(configBuffer != 0) {
                 unsigned char *dest = configBuffer;
                 memcpy(dest, pData, deviceDesc->DIOBytes);
@@ -247,7 +248,7 @@ unsigned long DIO_ConfigureEx(
       }
 
     if(deviceDesc->LastDIOData != 0) {
-          assert(deviceDesc->DIOBytes <= 1000);       // arbitrary sanity check
+          aio_assert(deviceDesc->DIOBytes <= 1000);       // arbitrary sanity check
           memcpy(deviceDesc->LastDIOData, pData, deviceDesc->DIOBytes);
           libusb_device_handle *const deviceHandle = AIOUSB_GetDeviceHandle(DeviceIndex);
           if(deviceHandle != NULL) {
@@ -255,7 +256,7 @@ unsigned long DIO_ConfigureEx(
                 const int tristateBytes = (deviceDesc->Tristates + BITS_PER_BYTE - 1) / BITS_PER_BYTE;
                 const int bufferSize = deviceDesc->DIOBytes + maskBytes + tristateBytes;
                 unsigned char *const configBuffer = ( unsigned char* )malloc(bufferSize);
-                assert(configBuffer != 0);
+                aio_assert(configBuffer != 0);
                 if(configBuffer != 0) {
                       unsigned char *dest = configBuffer;
                       memcpy(dest, pData, deviceDesc->DIOBytes);
@@ -312,12 +313,12 @@ unsigned long DIO_ConfigurationQuery(
 
     libusb_device_handle *const deviceHandle = AIOUSB_GetDeviceHandle(DeviceIndex);
     if(deviceHandle != NULL) {
-          assert(deviceDesc->DIOBytes <= 1000);       // arbitrary sanity check
+          aio_assert(deviceDesc->DIOBytes <= 1000);       // arbitrary sanity check
           const int maskBytes = (deviceDesc->DIOBytes + BITS_PER_BYTE - 1) / BITS_PER_BYTE;
           const int tristateBytes = (deviceDesc->Tristates + BITS_PER_BYTE - 1) / BITS_PER_BYTE;
           const int bufferSize = maskBytes + tristateBytes;
           unsigned char *const configBuffer = ( unsigned char* )malloc(bufferSize);
-          assert(configBuffer != 0);
+          aio_assert(configBuffer != 0);
           if(configBuffer != 0) {
                 const int dioBytes = deviceDesc->DIOBytes;
                 const unsigned timeout = deviceDesc->commTimeout;
@@ -369,7 +370,7 @@ unsigned long DIO_WriteAll(
       }
 
     if(deviceDesc->LastDIOData != 0) {
-          assert(deviceDesc->DIOBytes <= 1000);       // arbitrary sanity check
+          aio_assert(deviceDesc->DIOBytes <= 1000);       // arbitrary sanity check
           char foo[10] = {};
           memcpy(foo, pData, deviceDesc->DIOBytes);
           memcpy(deviceDesc->LastDIOData, pData, deviceDesc->DIOBytes);
@@ -428,13 +429,13 @@ unsigned long DIO_Write8(
       }
 
     if(deviceDesc->LastDIOData != 0) {
-          assert(deviceDesc->DIOBytes <= 1000);       // arbitrary sanity check
+          aio_assert(deviceDesc->DIOBytes <= 1000);       // arbitrary sanity check
           deviceDesc->LastDIOData[ ByteIndex ] = Data;
           libusb_device_handle *const deviceHandle = AIOUSB_GetDeviceHandle(DeviceIndex);
           if(deviceHandle != NULL) {
                 const int dioBytes = deviceDesc->DIOBytes;
                 unsigned char *const dataBuffer = ( unsigned char* )malloc(dioBytes);
-                assert(dataBuffer != 0);
+                aio_assert(dataBuffer != 0);
                 if(dataBuffer != 0) {
                       memcpy(dataBuffer, deviceDesc->LastDIOData, dioBytes);
                       const unsigned timeout = deviceDesc->commTimeout;
