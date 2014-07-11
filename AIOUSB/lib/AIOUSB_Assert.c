@@ -28,10 +28,24 @@
 
 #include "AIOUSB_Assert.h"
 
+#ifdef __cplusplus
+namespace AIOUSB {
+#endif
+
+
 static int test_in_subprocess = 0;
 static int test_nonfatal_assertions = 0;
+static FILE *aio_assert_fh = NULL;
 
 char *__aio_assert_msg;
+
+#ifdef SELF_TEST
+#define ABORT() while(0) { }
+#else
+#define ABORT() abort()
+#endif
+
+
 
 void aio_assert_expr(const char *domain,
                      const char     *file,
@@ -40,6 +54,9 @@ void aio_assert_expr(const char *domain,
                      const char     *expr)
 {
     char *s;
+    if( ! aio_assert_fh )
+        aio_assert_fh = stdout;
+
     if (!expr)
         s = strdup("code should not be reached");
     else { 
@@ -56,7 +73,7 @@ void aio_assert_expr(const char *domain,
     if ( test_in_subprocess )
         _exit(1);
     else 
-        abort ();
+        ABORT();
 }
 
 void aiousb_assertion_message(const char *domain,
@@ -67,7 +84,9 @@ void aiousb_assertion_message(const char *domain,
 {
     char lstr[32];
     char *s;
-    
+    if( ! aio_assert_fh )
+        aio_assert_fh = stdout;
+
     if (!message)
         message = "code should not be reached";
     snprintf(lstr, 32, "%d", line);
@@ -84,12 +103,9 @@ void aiousb_assertion_message(const char *domain,
               " ",
               message 
               );
-    /* s = strncat( domain ? domain : "", domain && domain[0] ? ":" : "", */
-    /*              "ERROR:", file, ":", lstr, ":", */
-    /*              func, func[0] ? ":" : "", */
-    /*              " ", message, NULL); */
-    
-    printf("**\n%s\n", s);
+    /* fprintf(aio_assert_fh, "**\n%s\n", s); */
+    /* printf("\n%s\n", s); */
+    fprintf(aio_assert_fh, "\n%s\n", s);
     /* g_test_log (G_TEST_LOG_ERROR, s, NULL, 0, NULL); */
 
     if (test_nonfatal_assertions) {
@@ -115,29 +131,81 @@ void aiousb_assertion_message(const char *domain,
        */
       _exit (1);
   } else
-      abort ();
+      ABORT();
 }
 
-/* void aio_assertion_message_cmpnum(const char     *domain, */
-/*                                   const char     *file, */
-/*                                   int             line, */
-/*                                   const char     *func, */
-/*                                   const char     *expr, */
-/*                                   long double     arg1, */
-/*                                   const char     *cmp, */
-/*                                   long double     arg2, */
-/*                                   char            numtype) */
-/* { */
-/*     char *s = NULL; */
+#ifdef __cplusplus
+}
+#endif
 
-/*     switch (numtype) { */
-/*     case 'i':   s = g_strdup_printf ("assertion failed (%s): (%" G_GINT64_MODIFIER "i %s %" G_GINT64_MODIFIER "i)", expr, (gint64) arg1, cmp, (gint64) arg2); break; */
-/*     case 'x':   s = g_strdup_printf ("assertion failed (%s): (0x%08" G_GINT64_MODIFIER "x %s 0x%08" G_GINT64_MODIFIER "x)", expr, (guint64) arg1, cmp, (guint64) arg2); break; */
-/*     case 'f':   s = g_strdup_printf ("assertion failed (%s): (%.9g %s %.9g)", expr, (double) arg1, cmp, (double) arg2); break; */
-/*       /\* ideally use: floats=%.7g double=%.17g *\/ */
-/*     } */
-/*     aio_assertion_message (domain, file, line, func, s); */
-/*     free(s); */
-/* } */
+#ifdef SELF_TEST
+
+#include "gtest/gtest.h"
+#include "tap.h"
+#include <signal.h>
+
+using namespace AIOUSB;
 
 
+TEST(AIOUSB_Assert, BasicAssert) {
+    aio_assert( 1 == 1 );
+    aio_assert( strcmp("something","something") == 0 );
+}
+
+static void handler(int sig)
+{
+    return;
+}
+
+TEST( AIOUSB_Assert, FailedAssert) {
+    struct sigaction sa;
+    int tmpval;
+    FILE *tmpfh;
+    char *tmpname;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    sa.sa_handler = handler;
+    EXPECT_NE( (tmpval = sigaction(SIGABRT, &sa, NULL)),-1 );
+    tmpname = tempnam(NULL,"atest");
+    /* printf("Name was %s\n",tmpname); */
+    tmpfh = fopen(tmpname,"w+");
+    EXPECT_TRUE( tmpfh );
+    aio_assert_fh = tmpfh;
+    /* Key expression */
+    aio_assert( 1 == 2 );
+    
+    /* Now verify that it did write out correctly */
+    fclose(tmpfh);
+    tmpfh = fopen(tmpname,"r");
+    EXPECT_TRUE( tmpfh );
+    char *line= NULL;
+    int size;
+    int success = 0;
+    while ( (int)getline( &line, (size_t*)&size, tmpfh ) >= 0 ) {
+        if( strstr( line , " assertion failed: (1 == 2)" ) ) {
+            success = 1;
+        }
+    }
+    fclose(tmpfh);
+    unlink(tmpname);
+    EXPECT_TRUE( success );
+}
+
+int main(int argc, char *argv[] )
+{
+  AIORET_TYPE retval;
+  int i,j,pos;
+  test_nonfatal_assertions = 1;
+
+  testing::InitGoogleTest(&argc, argv);
+  testing::TestEventListeners & listeners = testing::UnitTest::GetInstance()->listeners();
+#ifdef GTEST_TAP_PRINT_TO_STDOUT
+  delete listeners.Release(listeners.default_result_printer());
+#endif
+
+  listeners.Append( new tap::TapListener() );
+  return RUN_ALL_TESTS();  
+
+}
+
+#endif

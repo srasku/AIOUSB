@@ -18,9 +18,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
 #include <unistd.h>
+#include "AIOTypes.h"
 
+#ifdef __aiousb_cplusplus
+namespace AIOUSB
+{
+#endif
 
 #ifndef AIO_LOG_DOMAIN
 #define AIO_LOG_DOMAIN ((char*) 0)
@@ -59,5 +63,9 @@ void aio_assert_expr(const char *domain,
 
 
 extern char *__aio_assert_msg;
+
+#ifdef __aiousb_cplusplus
+}
+#endif
 
 #endif
