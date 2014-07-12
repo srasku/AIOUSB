@@ -50,7 +50,8 @@ ELSE(BUILD_AIOUSBCPPDBG_SHARED)
   SET(AIOUSBCPPDBG_LIBRARY_TYPE STATIC)
 ENDIF(BUILD_AIOUSBCPPDBG_SHARED)
 
-SET( tmp_aiousb_files 
+SET( tmp_aiousb_files
+  "${CMAKE_CURRENT_SOURCE_DIR}/AIOUSB_Assert.c" 
   "${CMAKE_CURRENT_SOURCE_DIR}/AIOChannelMask.c" 
   "${CMAKE_CURRENT_SOURCE_DIR}/AIOContinuousBuffer.c" 
   "${CMAKE_CURRENT_SOURCE_DIR}/AIODeviceInfo.c"
@@ -149,7 +150,7 @@ find_package( GTest )
 find_package( GTestTap )
 
 if( GTESTTAP_FOUND )
-  set(GTEST_FILES DIOBuf.c AIOChannelMask.c AIOUSB_Core.c AIODeviceInfo.c )
+  set(GTEST_FILES DIOBuf.c AIOChannelMask.c AIOUSB_Core.c AIODeviceInfo.c AIOUSB_Assert.c )
   foreach( gtest ${GTEST_FILES} ) 
     set(MY_FLAGS "-DSELF_TEST -D__aiousb_cplusplus -DGTEST_TAP_PRINT_TO_STDOUT"  )
     set(MY_LIBRARIES aiousbdbg usb-1.0 pthread m gtest aiousb aiousbcpp )
