@@ -119,8 +119,7 @@ include_directories( "${CMAKE_CURRENT_SOURCE_DIR}" )
 # MESSAGE(STATUS "Setting include path to include '${CMAKE_CURRENT_SOURCE_DIR}'")
 set( AIOUSB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}  )
 
-get_filename_component(LIBUSB_DIRECTORY ${LIBUSB_1_LIBRARIES} DIRECTORY )
-link_directories( ${LIBUSB_DIRECTORY} )
+get_filename_component(LIBUSB_DIRECTORY ${LIBUSB_1_LIBRARIES} PATH )
 
 target_link_libraries( aiousb ${CORELIBS} ${EXTRA_LIBS} -L${LIBUSB_DIRECTORY} )
 target_link_libraries( aiousbcpp ${CORELIBS} ${EXTRA_LIBS}  -L${LIBUSB_DIRECTORY} )
