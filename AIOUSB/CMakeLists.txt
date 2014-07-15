@@ -90,7 +90,7 @@ if(  UNIX OR APPLE )
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC" )	
       endif(USE_GCC AND NOT CYGWIN )
 
-      set(CORELIBS pthread usb-1.0 )
+      set(CORELIBS pthread)
     endif(USE_GCC OR USE_CLANG)
   else("$ENV{CFLAGS}" STREQUAL "")
     set(CMAKE_C_FLAGS "$ENV{CFLAGS}")

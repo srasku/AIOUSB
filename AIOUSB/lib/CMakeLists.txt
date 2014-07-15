@@ -121,10 +121,10 @@ set( AIOUSB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}  )
 
 get_filename_component(LIBUSB_DIRECTORY ${LIBUSB_1_LIBRARIES} PATH )
 
-target_link_libraries( aiousb ${CORELIBS} ${EXTRA_LIBS} -L${LIBUSB_DIRECTORY} )
-target_link_libraries( aiousbcpp ${CORELIBS} ${EXTRA_LIBS}  -L${LIBUSB_DIRECTORY} )
-target_link_libraries( aiousbcppdbg ${CORELIBS} ${EXTRA_LIBS}  -L${LIBUSB_DIRECTORY} )
-target_link_libraries( aiousbdbg ${CORELIBS} ${EXTRA_LIBS}  -L${LIBUSB_DIRECTORY} )
+target_link_libraries( aiousb ${CORELIBS} ${EXTRA_LIBS} ${LIBUSB_1_LIBRARIES} )
+target_link_libraries( aiousbcpp ${CORELIBS} ${EXTRA_LIBS} ${LIBUSB_1_LIBRARIES} )
+target_link_libraries( aiousbcppdbg ${CORELIBS} ${EXTRA_LIBS} ${LIBUSB_1_LIBRARIES} )
+target_link_libraries( aiousbdbg ${CORELIBS} ${EXTRA_LIBS} ${LIBUSB_1_LIBRARIES} )
 
 add_dependencies( aiousb aiousb_copies )
 add_dependencies( aiousbcpp aiousbcpp_copies )
