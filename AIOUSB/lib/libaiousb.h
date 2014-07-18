@@ -220,6 +220,12 @@ PUBLIC_EXTERN AIORET_TYPE CTR_8254SelectGate( unsigned long DeviceIndex,
 PUBLIC_EXTERN AIORET_TYPE CTR_8254ReadLatched( unsigned long DeviceIndex,
                                                unsigned short *pData );
 
+/* this function exists so that mex may be used to compile the library
+   it is not otherwise needed */
+void mexFunction( int nlhs, mxArray *plhs[], 
+          int nrhs, const mxArray*prhs[] )
+{
+}
 
 
 
