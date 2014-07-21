@@ -164,18 +164,25 @@ endif( GTESTTAP_FOUND )
 if( BUILD_MATLAB AND BUILD_AIOUSB_SHARED ) 
   MESSAGE(STATUS "Building Matlab")
   FIND_PACKAGE(Matlab REQUIRED )
+
+  execute_process(COMMAND ${MATLAB_ROOT}/bin/mexext 
+    OUTPUT_VARIABLE MATLAB_SUFFIX
+    ERROR_VARIABLE MATLAB_SUFFIX_ERROR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
   SET(MEX_COMMAND ${MATLAB_ROOT}/bin/mex -I${CMAKE_CURRENT_SOURCE_DIR} -I${LIBUSB_1_INCLUDE_DIRS} -lm -output libaiousb ${tmp_aiousb_files} -L${LIBUSB_DIRECTORY} ${LIBUSB_1_LIBRARIES} )
   
-  ADD_CUSTOM_COMMAND( OUTPUT libaiousb.mexglx
+  ADD_CUSTOM_COMMAND( OUTPUT libaiousb.${MATLAB_SUFFIX}
     COMMAND ${MEX_COMMAND}
     DEPENDS aiousb
     )
 
   ADD_CUSTOM_TARGET( build_matlab_test ALL 
-    DEPENDS libaiousb.mexglx
+    DEPENDS libaiousb.${MATLAB_SUFFIX}
     COMMENT "Building Matlab library"
     )
-  install( FILES ${CMAKE_CURRENT_BINARY_DIR}/libaiousb.mexglx DESTINATION lib )
+  install( FILES ${CMAKE_CURRENT_BINARY_DIR}/libaiousb.${MATLAB_SUFFIX} DESTINATION lib )
   install( FILES ${CMAKE_CURRENT_SOURCE_DIR}/libaiousb.h DESTINATION include )
 
 ELSEIF( BUILD_MATLAB )
