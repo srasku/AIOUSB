@@ -41,7 +41,7 @@ enum {
  * called by AIOUSB_Init()
  */
 
-typedef struct {
+typedef struct device_node {
     libusb_device *device;              /**< NULL == no device */
     libusb_device_handle *deviceHandle; /**< libusb handles */
     AIOUSB_BOOL bOpen;
@@ -122,6 +122,8 @@ typedef struct {
   int ADBuf_size;
  
 } DeviceDescriptor;
+
+typedef DeviceDescriptor AIOUSBDevice;
 
 
 #define PROD_NAME_SIZE 40

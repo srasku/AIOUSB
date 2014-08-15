@@ -29,7 +29,7 @@ ifneq ("$(OSTYPE)","CYGWIN")
 COMMONOPT	+= -fPIC 
 endif
 
-override CXXFLAGS += -I. -I../lib -D__aiousb_cplusplus
+override CXXFLAGS += -fPIC -I. -I../lib -D__aiousb_cplusplus
 
 ifdef DEBUG
         DEBUGOPTS       += -ggdb $(DEBUG)

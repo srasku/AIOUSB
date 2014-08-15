@@ -4,13 +4,13 @@
  * @date   $Date$
  * @copy
  * @brief ACCES I/O USB Property utilities for Linux. These functions assist with identifying
- *       cards and verifying that the API is in fact operating on the correct type of card.
+ *       cards and verifying the devices attached are the correct type of card.
  *
  * @todo Implement a friendly FindDevices() function as well as FindDeviceByCriteria() 
  *       function to replace all of the standard looping while ( deviceMask != 0 )...
  */
 
-#include "AIOUSB_Core.h"
+#include "AIOUSB_Properties.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -89,7 +89,8 @@ unsigned long AIOUSB_GetDeviceByProductID(int minProductID,
                                           int maxProductID,
                                           int maxDevices,
                                           int *deviceList
-                                          ) {
+                                          ) 
+{
     if(non_usb_supported_device(minProductID, maxProductID, maxDevices, deviceList))
         return AIOUSB_ERROR_INVALID_PARAMETER;
 
@@ -121,8 +122,10 @@ unsigned long AIOUSB_GetDeviceByProductID(int minProductID,
     AIOUSB_UnLock();
     return AIOUSB_SUCCESS;
 }
+
 /*----------------------------------------------------------------------------*/
-unsigned long GetDeviceBySerialNumber(unsigned long *pSerialNumber) {
+unsigned long GetDeviceBySerialNumber(unsigned long *pSerialNumber) 
+{
     unsigned long deviceIndex = diNone;
 
     if(pSerialNumber == NULL)
@@ -160,12 +163,36 @@ unsigned long GetDeviceBySerialNumber(unsigned long *pSerialNumber) {
     AIOUSB_UnLock();
     return deviceIndex;
 }
+
+/*----------------------------------------------------------------------------*/
+AIORESULT FindDevices( int **indices, int *length , int minProductID, int maxProductID  )
+{
+    unsigned long deviceMask = AIOUSB_GetAllDevices();
+    int index = 0;
+    AIORESULT retval = AIOUSB_ERROR_DEVICE_NOT_FOUND;
+
+    while ( deviceMask  ) {
+        if ( deviceMask & 1 ) {
+            if ( deviceTable[index].ProductID >= (unsigned)minProductID && deviceTable[index].ProductID <= (unsigned)maxProductID ) {
+                *length += 1; 
+                *indices = (int *)realloc( *indices, (*length)*sizeof(int));
+                *indices[*length-1] = index;
+                retval = AIOUSB_SUCCESS;
+            }
+        }
+        index++;
+        deviceMask >>= 1;
+    }
+    return retval;
+}
+
 /*----------------------------------------------------------------------------*/
 /**
  * @brief AIOUSB_GetDeviceProperties() returns a richer amount of information 
  * than QueryDeviceInfo()
  */
-unsigned long AIOUSB_GetDeviceProperties(unsigned long DeviceIndex,DeviceProperties *properties ) {
+unsigned long AIOUSB_GetDeviceProperties(unsigned long DeviceIndex,DeviceProperties *properties ) 
+{
     if(properties == 0)
         return AIOUSB_ERROR_INVALID_PARAMETER;
     
@@ -254,8 +281,40 @@ const char *AIOUSB_GetResultCodeAsString(unsigned long result_value)
       }
     return resultText;
 }
+
+AIORESULT AIOUSB_GetAllDevices() 
+{
+    AIORESULT deviceMask = 0;
+    if(AIOUSB_Lock()) {
+          if(AIOUSB_IsInit()) {
+                int index;
+                for(index = 0; index < MAX_USB_DEVICES; index++) {
+                    if(deviceTable[ index ].device != NULL) {
+                            const int MAX_NAME_SIZE = 100;
+                            char name[ MAX_NAME_SIZE + 1 ];
+                            unsigned long productID;
+                            unsigned long nameSize = MAX_NAME_SIZE;
+                            unsigned long numDIOBytes;
+                            unsigned long numCounters;
+                            AIOUSB_UnLock();                               /* unlock while communicating with device */
+                            const unsigned long result = QueryDeviceInfo(index, &productID, &nameSize, name, &numDIOBytes, &numCounters);
+                            if(result == AIOUSB_SUCCESS) {
+                                name[ nameSize ] = '\0';
+                                deviceMask = (deviceMask << 1) | 1;
+                            }
+
+                            AIOUSB_Lock();
+                        }
+                  }
+            }
+          AIOUSB_UnLock();
+      }
+    return deviceMask;
+}
+
 /*----------------------------------------------------------------------------*/
-void AIOUSB_ListDevices() {
+void AIOUSB_ListDevices() 
+{
     AIOUSB_BOOL found = AIOUSB_FALSE;
     if(AIOUSB_Lock()) {
           if(AIOUSB_IsInit()) {

@@ -20,7 +20,9 @@ AIOContinuousBuffer.o \
 AIOChannelMask.o \
 AIOUSB_Properties.o \
 AIODeviceInfo.o \
-DIOBuf.o
+DIOBuf.o \
+USBDevice.o \
+AIODeviceTable.o
 
 include $(AIOUSB_ROOT)/Mkfiles/oses.inc
 
@@ -126,7 +128,7 @@ $(SHCDBGLIB): 	$(CDBGOBJS)
 $(SHCPPLIB) : $(CPPOBJS)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CC_SHFLAGS),$@ -o $@ $(CPPOBJS) $(SHARED_LIBS)
 $(SHCPPDBGLIB) : $(CPPDBGOBJS)
-	$(CXX) $(CXXFLAGS),$@  $(LDFLAGS) $(CC_SHFLAGS),$@ -o $@ $(CPPDBJOBJS) $(SHARED_LIBS)
+	$(CXX) $(CXXFLAGS),$@  $(LDFLAGS) $(CC_SHFLAGS),$@ -o $@ $(CPPDBGOBJS) $(SHARED_LIBS)
 endif
 
 
