@@ -1,6 +1,6 @@
 
 INCLUDES	:= -I$${AIO_LIB_DIR}
-override CFLAGS	+= -I. -I/usr/include/libusb-1.0 -std=gnu99 -g
+override CFLAGS	+= -D_GNU_SOURCE -I. $(INCLUDES) -I/usr/include/libusb-1.0 -std=gnu99 -g
 
 
 FILES	:= $(wildcard *.c)
@@ -12,11 +12,9 @@ RED	:= $(shell tput setaf 1 )
 
 all:	$(MOCKS)
 
-#	@for i in $(MOCKS) ; do $(MAKE) $$i ; done 
-
 lib%.so:%.c
 	@cmake -E cmake_echo_color --green "Building $@"
-	@$(CC) -I.. -g -shared -Wl,-soname,$@ -shared -fPIC -o $@ $< -ldl
+	@$(CC) $(CFLAGS) -shared -Wl,-soname,$@ -shared -fPIC -o $@ $< -ldl
 
 
 

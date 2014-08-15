@@ -8,6 +8,7 @@
  */
 
 #include "AIOUSB_Core.h"
+#include "aiousb.h"
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -349,8 +350,7 @@ unsigned long AIOUSB_Validate(unsigned long *DeviceIndex) {
     return result;
 }
 
-
-
+/*----------------------------------------------------------------------------*/
 PRIVATE static void InitDeviceTable(void)
 {
     int index;
@@ -417,10 +417,10 @@ PRIVATE static void InitDeviceTable(void)
           deviceDesc->workerResult = AIOUSB_SUCCESS;
       }
 }
- 
 
-
-void _setup_device_parameters( DeviceDescriptor *deviceDesc , unsigned long productID ) {
+/*----------------------------------------------------------------------------*/ 
+void _setup_device_parameters( DeviceDescriptor *deviceDesc , unsigned long productID ) 
+{
     deviceDesc->StreamingBlockSize = 31ul * 1024ul;
     deviceDesc->bGetName = AIOUSB_TRUE;             // most boards support this feature
     if(productID == USB_DIO_32) {
@@ -602,6 +602,7 @@ void _setup_device_parameters( DeviceDescriptor *deviceDesc , unsigned long prod
     }
 }
 
+/*----------------------------------------------------------------------------*/
 /**
  * @brief A mock function that can set up the DeviceTable with any type of devices
  *
@@ -615,24 +616,22 @@ void AddDeviceToDeviceTable( int *numAccesDevices, unsigned long productID ) {
     _setup_device_parameters( deviceDesc , productID );
 }
 
-void PopulateDeviceTableTest(unsigned long *products, int length ) {
+/*----------------------------------------------------------------------------*/
+void PopulateDeviceTableTest(unsigned int *products, int length ) {
     int numAccesDevices = 0;
     AIOUSB_InitTest();    
     for( int i = 0; i < length ; i ++ ) {
-        AddDeviceToDeviceTable( &numAccesDevices, products[i] );
-        deviceTable[numAccesDevices-1].device = (libusb_device *)0x42;
+        AddDeviceToDeviceTable( &numAccesDevices, (unsigned long)products[i] );
+        /* deviceTable[numAccesDevices-1].device = (libusb_device *)0x42; */
     }
 }
-
-
-
-
 
 /** 
  * @todo Rely on Global Header files for the functionality of devices / cards
  * as opposed to hard coding
  */
-void PopulateDeviceTable(void) {
+void PopulateDeviceTable(void) 
+{
   /*
    * populate device table with ACCES devices found on USB bus
    */
@@ -1083,9 +1082,9 @@ unsigned long AIOUSB_GetDevices(void)
     AIOUSB_UnLock();
     return deviceMask;
 }
-
-
-unsigned long GetDevices(void) {
+/*----------------------------------------------------------------------------*/ 
+unsigned long GetDevices(void) 
+{
     unsigned long deviceMask = 0;
 
     if(!AIOUSB_Lock())
@@ -1102,10 +1101,10 @@ unsigned long GetDevices(void) {
           ClearDevices();
           int index;
           for(index = 0; index < MAX_USB_DEVICES; index++) {
-                if(deviceTable[ index ].device != NULL)
-                    deviceMask = (deviceMask << 1) | 1;
-            }
-      }
+              if(deviceTable[ index ].device != NULL)
+                  deviceMask = (deviceMask << 1) | 1;
+          }
+    }
 
     AIOUSB_UnLock();
     return deviceMask;
@@ -1113,13 +1112,14 @@ unsigned long GetDevices(void) {
 
 
 unsigned long QueryDeviceInfo(
-                                            unsigned long DeviceIndex,
-                                            unsigned long *pPID,
-                                            unsigned long *pNameSize,
-                                            char *pName,
-                                            unsigned long *pDIOBytes,
-                                            unsigned long *pCounters
-                                            ) {
+                              unsigned long DeviceIndex,
+                              unsigned long *pPID,
+                              unsigned long *pNameSize,
+                              char *pName,
+                              unsigned long *pDIOBytes,
+                              unsigned long *pCounters
+                                            ) 
+{
     if(!AIOUSB_Lock())
         return AIOUSB_ERROR_INVALID_MUTEX;
 

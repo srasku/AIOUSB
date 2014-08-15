@@ -10,7 +10,6 @@
 #include "AIOUSB_Core.h"
 
 
-#define __USE_GNU
 #include <dlfcn.h>
 
 static int libusb_file_number = 0;

@@ -152,7 +152,7 @@ PUBLIC_EXTERN unsigned long ADC_ResetDevice( unsigned long DeviceIndex  );
 PUBLIC_EXTERN AIORET_TYPE AIOUSB_GetDeviceSerialNumber( unsigned long DeviceIndex );
 PUBLIC_EXTERN AIORET_TYPE ADC_WriteADConfigBlock( unsigned long DeviceIndex , ADConfigBlock *config );
 
-PUBLIC_EXTERN void PopulateDeviceTableTest(unsigned long *products, int length );
+PUBLIC_EXTERN void PopulateDeviceTableTest(unsigned int *products, int length );
 
 
 #ifndef SWIG
