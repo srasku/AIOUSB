@@ -197,7 +197,8 @@ static const char VERSION_DATE[] = "$Format: %ad$";
  *   supported by our mutual exclusion scheme.
  */
 
-AIOUSB_BOOL AIOUSB_Lock() {
+AIOUSB_BOOL AIOUSB_Lock() 
+{
     assert(AIOUSB_IsInit());
 #if defined(AIOUSB_ENABLE_MUTEX)
     return(pthread_mutex_lock(&aiousbMutex) == 0);
@@ -206,7 +207,8 @@ AIOUSB_BOOL AIOUSB_Lock() {
 #endif
 }
 
-AIOUSB_BOOL AIOUSB_UnLock() {
+AIOUSB_BOOL AIOUSB_UnLock() 
+{
     assert(AIOUSB_IsInit());
 #if defined(AIOUSB_ENABLE_MUTEX)
     return(pthread_mutex_unlock(&aiousbMutex) == 0);
@@ -215,7 +217,7 @@ AIOUSB_BOOL AIOUSB_UnLock() {
 #endif
 }
 
- 
+/*----------------------------------------------------------------------------*/
 unsigned long AIOUSB_Validate_Lock(unsigned long *DeviceIndex)
 {
     unsigned long result = (unsigned long)AIOUSB_SUCCESS;
@@ -283,8 +285,9 @@ unsigned long AIOUSB_Validate_Lock(unsigned long *DeviceIndex)
     return result;
 }
 
-
-unsigned long AIOUSB_Validate(unsigned long *DeviceIndex) {
+/*----------------------------------------------------------------------------*/
+unsigned long AIOUSB_Validate(unsigned long *DeviceIndex) 
+{
     assert(DeviceIndex != 0);
     if(!AIOUSB_Lock())
         return AIOUSB_ERROR_INVALID_MUTEX;
@@ -608,7 +611,8 @@ void _setup_device_parameters( DeviceDescriptor *deviceDesc , unsigned long prod
  *
  *
  **/
-void AddDeviceToDeviceTable( int *numAccesDevices, unsigned long productID ) {
+void AddDeviceToDeviceTable( int *numAccesDevices, unsigned long productID ) 
+{
     DeviceDescriptor *deviceDesc = &deviceTable[ (*numAccesDevices)++ ];
     deviceDesc->device        = NULL;
     deviceDesc->deviceHandle  = NULL;
@@ -617,7 +621,8 @@ void AddDeviceToDeviceTable( int *numAccesDevices, unsigned long productID ) {
 }
 
 /*----------------------------------------------------------------------------*/
-void PopulateDeviceTableTest(unsigned int *products, int length ) {
+void PopulateDeviceTableTest(unsigned int *products, int length ) 
+{
     int numAccesDevices = 0;
     AIOUSB_InitTest();    
     for( int i = 0; i < length ; i ++ ) {
@@ -626,7 +631,8 @@ void PopulateDeviceTableTest(unsigned int *products, int length ) {
     }
 }
 
-/** 
+/*----------------------------------------------------------------------------*/
+/**
  * @todo Rely on Global Header files for the functionality of devices / cards
  * as opposed to hard coding
  */
@@ -665,9 +671,9 @@ void PopulateDeviceTable(void)
     libusb_free_device_list(deviceList, AIOUSB_TRUE);
 }
 
-
-
-static void CloseAllDevices(void) {
+/*----------------------------------------------------------------------------*/
+static void CloseAllDevices(void) 
+{
     if(!AIOUSB_IsInit())
         return;
     int index;
@@ -692,9 +698,7 @@ static void CloseAllDevices(void) {
       }
 }
 
-
-
-
+/*----------------------------------------------------------------------------*/
 static int CompareProductIDs(const void *p1, const void *p2)
 {
     assert(p1 != 0 &&
@@ -711,14 +715,14 @@ static int CompareProductIDs(const void *p1, const void *p2)
         return 0;
 }
 
+/*----------------------------------------------------------------------------*/
 /**
  * @brief this function returns the name of a product ID; generally,
  * it's best to use this only as a last resort, since most
  * devices return their name when asked in QueryDeviceInfo()
  */
-PRIVATE const char *ProductIDToName(unsigned int productID) {
-
-
+PRIVATE const char *ProductIDToName(unsigned int productID) 
+{
     const char *name = "UNKNOWN";
 
     if(AIOUSB_Lock()) {
@@ -754,8 +758,12 @@ PRIVATE const char *ProductIDToName(unsigned int productID) {
           ProductIDName key;
           key.id = productID;
           const ProductIDName *const pKey = &key;
-          const ProductIDName **product
-              = ( const ProductIDName** )bsearch(&pKey, productIDIndex, NUM_PROD_NAMES, sizeof(ProductIDName *), CompareProductIDs);
+          const ProductIDName **product = ( const ProductIDName** )bsearch(&pKey, 
+                                                                           productIDIndex, 
+                                                                           NUM_PROD_NAMES, 
+                                                                           sizeof(ProductIDName *), 
+                                                                           CompareProductIDs
+                                                                           );
           if(product != 0)
               name = (*product)->name;
           AIOUSB_UnLock();
@@ -763,9 +771,9 @@ PRIVATE const char *ProductIDToName(unsigned int productID) {
     return name;
 }
 
-
-
-static int CompareProductNames(const void *p1, const void *p2) {
+/*----------------------------------------------------------------------------*/
+static int CompareProductNames(const void *p1, const void *p2) 
+{
     assert(p1 != 0 &&
            (*( ProductIDName** )p1) != 0 &&
            p2 != 0 &&
@@ -773,6 +781,7 @@ static int CompareProductNames(const void *p1, const void *p2) {
     return strcmp((*( ProductIDName** )p1)->name, (*( ProductIDName** )p2)->name);
 }
 
+/*----------------------------------------------------------------------------*/
 /**
  * @details This function is the complement of ProductIDToName() and
  * returns the product ID for a given name; this function should be
@@ -792,7 +801,8 @@ static int CompareProductNames(const void *p1, const void *p2) {
  *
  * @return
  */
-PRIVATE unsigned int ProductNameToID(const char *name) {
+PRIVATE unsigned int ProductNameToID(const char *name) 
+{
     assert(name != 0);
 
     unsigned int productID = 0;
@@ -834,7 +844,9 @@ PRIVATE unsigned int ProductNameToID(const char *name) {
     return productID;
 }
 
-static unsigned long GetDeviceName(unsigned long DeviceIndex, const char **name) {
+/*----------------------------------------------------------------------------*/
+static unsigned long GetDeviceName(unsigned long DeviceIndex, const char **name) 
+{
     assert(name != 0);
     if(!AIOUSB_Lock())
         return AIOUSB_ERROR_INVALID_MUTEX;
@@ -966,7 +978,8 @@ PRIVATE const char *GetSafeDeviceName(unsigned long DeviceIndex) {
     return deviceName;
 }
 
-struct libusb_device_handle * AIOUSB_GetUSBHandle( DeviceDescriptor *deviceDesc ) {
+struct libusb_device_handle * AIOUSB_GetUSBHandle( DeviceDescriptor *deviceDesc ) 
+{
     return deviceDesc->deviceHandle;
 }
 
@@ -974,7 +987,8 @@ struct libusb_device_handle * AIOUSB_GetUSBHandle( DeviceDescriptor *deviceDesc 
  * @param DeviceIndex
  * @return struct libusb_device_handle *
  */
-PRIVATE struct libusb_device_handle *AIOUSB_GetDeviceHandle(unsigned long DeviceIndex) {
+PRIVATE struct libusb_device_handle *AIOUSB_GetDeviceHandle(unsigned long DeviceIndex) 
+{
     libusb_device_handle *deviceHandle = NULL;
     /* libusb_set_debug(NULL, 4 ); */
 
