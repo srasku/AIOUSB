@@ -27,3 +27,5 @@ DIOBuf.h export-subst
 aiousb.h export-subst
 libaiousb.h export-subst
 .gitattributes export-ignore
+mocks export-ignore
+
