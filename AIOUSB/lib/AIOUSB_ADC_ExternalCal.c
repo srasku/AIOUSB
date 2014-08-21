@@ -8,6 +8,7 @@
 
 
 #include "AIOUSB_Core.h"
+#include "AIODeviceTable.h"
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -36,15 +37,14 @@ static int CompareVoltage(const void *p1, const void *p2)
         return 0;
 }       // CompareVoltage()
 
-
-unsigned long
-AIOUSB_ADC_ExternalCal(
-    unsigned long DeviceIndex,
-    const double points[],
-    int numPoints,
-    unsigned short returnCalTable[],
-    const char *saveFileName
-    )
+/*----------------------------------------------------------------------------*/
+unsigned long AIOUSB_ADC_ExternalCal(
+                                     unsigned long DeviceIndex,
+                                     const double points[],
+                                     int numPoints,
+                                     unsigned short returnCalTable[],
+                                     const char *saveFileName
+                                     )
 {
     if(
         points == 0 ||

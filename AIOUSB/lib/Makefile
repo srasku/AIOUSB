@@ -22,7 +22,10 @@ AIOUSB_Properties.o \
 AIODeviceInfo.o \
 DIOBuf.o \
 USBDevice.o \
-AIODeviceTable.o
+AIODeviceTable.o \
+AIOUSBDevice.o \
+AIOChannelRange.o \
+ADCConfigBlock.o
 
 include $(AIOUSB_ROOT)/Mkfiles/oses.inc
 

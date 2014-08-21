@@ -1,4 +1,6 @@
 #include "AIODeviceInfo.h"
+#include "AIODeviceTable.h"
+#include "AIOUSBDevice.h"
 #include "AIOUSB_Core.h"
 
 #ifdef __cplusplus
@@ -11,28 +13,37 @@ AIODeviceInfo *NewAIODeviceInfo() {
 }
 
 void DeleteAIODeviceInfo( AIODeviceInfo *di ) { 
-    if ( di->Name ) 
-        free(di->Name);
-    free(di);
+    if ( di ) {
+        if (di->Name )
+            free(di->Name);
+        free(di);
+    }
 }
 
 const char *AIODeviceInfoGetName( AIODeviceInfo *di )
 {
-    return di->Name;
+    if ( di ) 
+        return di->Name;
+    return NULL;
 }
 
-unsigned AIODeviceInfoGetCounters( AIODeviceInfo *di ) 
+AIORET_TYPE AIODeviceInfoGetCounters( AIODeviceInfo *di ) 
 {
-    return di->Counters;
+    if ( di )
+        return di->Counters;
+    return -AIOUSB_ERROR_INVALID_PARAMETER;
 }
 
-unsigned AIODeviceInfoGetDIOBytes( AIODeviceInfo *di ) 
+AIORET_TYPE AIODeviceInfoGetDIOBytes( AIODeviceInfo *di ) 
 {
-    return di->DIOBytes;
+    if ( di ) 
+        return di->DIOBytes;
+    return -AIOUSB_ERROR_INVALID_PARAMETER;
 }
 
-AIODeviceInfo *GetDeviceInfo( unsigned long DeviceIndex )
+AIODeviceInfo *AIODeviceInfoRetrieve( unsigned long DeviceIndex )
 {
+    AIORESULT result = AIOUSB_SUCCESS;
     if ( !AIOUSB_Lock() ) { 
         aio_errno = -AIOUSB_ERROR_INVALID_MUTEX;
         return NULL;
@@ -44,14 +55,19 @@ AIODeviceInfo *GetDeviceInfo( unsigned long DeviceIndex )
     }
     memset(tmp,0,sizeof(AIODeviceInfo));
     AIOUSB_UnLock();
-    unsigned long result = AIOUSB_Validate(&DeviceIndex);
+    /* unsigned long result = AIOUSB_Validate(&DeviceIndex); */
     if ( result != AIOUSB_SUCCESS ) {
         AIOUSB_UnLock();
         aio_errno = -result;
         return NULL;
     }
 
-    DeviceDescriptor *const deviceDesc = &deviceTable[ DeviceIndex ];
+    /* DeviceDescriptor *const deviceDesc = &deviceTable[ DeviceIndex ]; */
+    AIOUSBDevice *deviceDesc = AIODeviceTableGetDeviceAtIndex( DeviceIndex, &result );
+    if ( result != AIOUSB_SUCCESS ) {
+        free(tmp);
+        return NULL;
+    }
 
     tmp->PID       = deviceDesc->ProductID;
     tmp->DIOBytes  = deviceDesc->DIOBytes;
@@ -77,24 +93,46 @@ AIODeviceInfo *GetDeviceInfo( unsigned long DeviceIndex )
 #include <math.h>
 #include "gtest/gtest.h"
 #include "tap.h"
+#include "AIODeviceTable.h"
+#include "AIODeviceInfo.h"
 #include "AIOUSB_Core.h"
+
 
 #ifdef __cplusplus
 using namespace AIOUSB;
 #endif
 
-
 TEST(AIODeviceInfo,Get_Defaults) {
     /* Mock object that looks like a DeviceTable */
     unsigned long products[] = {USB_AIO16_16A, USB_DIO_32};
-    PopulateDeviceTableTest( products, 2 );
-    AIODeviceInfo *tmp = GetDeviceInfo( 0 );
+    AIODeviceTablePopulateTableTest( products, 2 );
+    AIODeviceInfo *tmp = AIODeviceInfoRetrieve( 0 );
+
+    EXPECT_TRUE(tmp);
+
+
     EXPECT_STREQ(AIODeviceInfoGetName(tmp), "USB-AIO16-16A" );
     EXPECT_EQ(AIODeviceInfoGetCounters(tmp), 1 );
     EXPECT_EQ(AIODeviceInfoGetDIOBytes(tmp), 2 );
     DeleteAIODeviceInfo( tmp );
-    
 }
+
+/**
+ * @brief Verifies that the two device index constants work as 
+ * they should.
+ */
+TEST( AIODeviceInfo, CheckDeviceConstants ) 
+{
+    unsigned long products[] = {USB_AIO16_16A, USB_DIO_32};
+    AIODeviceTablePopulateTableTest( products, 2 );
+    AIODeviceInfo *tmp = AIODeviceInfoRetrieve( diFirst  );
+    EXPECT_TRUE( tmp );
+
+    tmp = AIODeviceInfoRetrieve( diOnly );
+    EXPECT_FALSE( tmp );
+
+}
+
 
 int main( int argc , char *argv[] ) 
 {

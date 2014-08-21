@@ -7,6 +7,7 @@
  */
 
 #include "AIOUSB_Core.h"
+#include "AIODeviceTable.h"
 #include <assert.h>
 #include <math.h>
 #include <string.h>

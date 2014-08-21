@@ -11,6 +11,7 @@
 #include "AIOUSB_CTR.h"
 #include "AIOUSB_Core.h"
 #include "AIOTypes.h"
+#include "AIODeviceTable.h"
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -1661,8 +1662,7 @@ unsigned long ADC_QueryCal(
     return result;
 }
 
-
-
+/*----------------------------------------------------------------------------*/
 /**
  * @param DeviceIndex
  * @param pConfigBuf
@@ -1671,11 +1671,11 @@ unsigned long ADC_QueryCal(
  * @return
  */
 unsigned long ADC_Initialize(
-    unsigned long DeviceIndex,
-    unsigned char *pConfigBuf,
-    unsigned long *ConfigBufSize,
-    const char *CalFileName
-    )
+                             unsigned long DeviceIndex,
+                             unsigned char *pConfigBuf,
+                             unsigned long *ConfigBufSize,
+                             const char *CalFileName
+                             )
 {
     unsigned long result = AIOUSB_SUCCESS;
 

@@ -18,6 +18,7 @@
 #include "AIOContinuousBuffer.h"
 #include "AIOChannelMask.h"
 #include "AIOUSB_Core.h"
+#include "AIODeviceTable.h"
 
 
 #ifdef __cplusplus

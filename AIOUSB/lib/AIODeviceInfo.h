@@ -23,8 +23,8 @@ typedef struct AIODeviceInfo {
 PUBLIC_EXTERN AIODeviceInfo *NewAIODeviceInfo();
 PUBLIC_EXTERN void DeleteAIODeviceInfo( AIODeviceInfo *di );
 PUBLIC_EXTERN const char *AIODeviceInfoGetName( AIODeviceInfo *di );
-PUBLIC_EXTERN unsigned AIODeviceInfoGetCounters( AIODeviceInfo *di ); 
-PUBLIC_EXTERN unsigned AIODeviceInfoGetDIOBytes( AIODeviceInfo *di );
+PUBLIC_EXTERN AIORET_TYPE AIODeviceInfoGetCounters( AIODeviceInfo *di ); 
+PUBLIC_EXTERN AIORET_TYPE AIODeviceInfoGetDIOBytes( AIODeviceInfo *di );
 PUBLIC_EXTERN AIODeviceInfo *GetDeviceInfo( unsigned long DeviceIndex );
 
 

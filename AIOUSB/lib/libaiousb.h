@@ -107,18 +107,22 @@ PUBLIC_EXTERN unsigned long DIO_StreamFrame(
 
 /* AIOUSB_Core */
 PUBLIC_EXTERN unsigned long AIOUSB_Validate_Lock(unsigned long *DeviceIndex);
-PUBLIC_EXTERN unsigned long AIOUSB_Validate(unsigned long *DeviceIndex) ;
-PUBLIC_EXTERN unsigned long GetDevices(void);
-PUBLIC_EXTERN unsigned long QueryDeviceInfo( unsigned long DeviceIndex, unsigned long *pPID, unsigned long *pNameSize, char *pName, unsigned long *pDIOBytes, unsigned long *pCounters ) ;
-PUBLIC_EXTERN unsigned long ClearDevices(void) ;
+
+/* PUBLIC_EXTERN unsigned long AIOUSB_Validate(unsigned long *DeviceIndex) ; */
+/* PUBLIC_EXTERN unsigned long GetDevices(void); */
+/* PUBLIC_EXTERN unsigned long QueryDeviceInfo( unsigned long DeviceIndex, unsigned long *pPID, unsigned long *pNameSize, char *pName, unsigned long *pDIOBytes, unsigned long *pCounters ) ; */
+/* PUBLIC_EXTERN unsigned long ClearDevices(void) ; */
+/* PUBLIC_EXTERN unsigned long AIOUSB_Init(void) ; */
+/* PUBLIC_EXTERN void AIOUSB_Exit() ; */
+/* PUBLIC_EXTERN unsigned long AIOUSB_Reset( unsigned long DeviceIndex ) ; */
+
 PUBLIC_EXTERN long AIOUSB_GetStreamingBlockSize(unsigned long DeviceIndex) ;
 PUBLIC_EXTERN unsigned long AIOUSB_SetStreamingBlockSize( unsigned long DeviceIndex, unsigned long BlockSize ) ;
 PUBLIC_EXTERN unsigned long AIOUSB_ClearFIFO( unsigned long DeviceIndex, FIFO_Method Method ) ;
 PUBLIC_EXTERN const char *AIOUSB_GetVersion() ;
 PUBLIC_EXTERN const char *AIOUSB_GetVersionDate() ;
-PUBLIC_EXTERN unsigned long AIOUSB_Init(void) ;
-PUBLIC_EXTERN void AIOUSB_Exit() ;
-PUBLIC_EXTERN unsigned long AIOUSB_Reset( unsigned long DeviceIndex ) ;
+
+
 PUBLIC_EXTERN double AIOUSB_GetMiscClock( unsigned long DeviceIndex ) ;
 PUBLIC_EXTERN unsigned long AIOUSB_SetMiscClock( unsigned long DeviceIndex, double clockHz ) ;
 PUBLIC_EXTERN unsigned AIOUSB_GetCommTimeout(unsigned long DeviceIndex ) ;
