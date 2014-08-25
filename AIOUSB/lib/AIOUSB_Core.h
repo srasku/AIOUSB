@@ -146,10 +146,10 @@ extern unsigned long aiousbInit ;
 
 
 PUBLIC_EXTERN AIOBuf *CreateSmartBuffer( unsigned long DeviceIndex );
-PUBLIC_EXTERN unsigned long ADC_CopyConfig(unsigned long DeviceIndex, ADConfigBlock *config  );
+PUBLIC_EXTERN unsigned long ADC_CopyConfig(unsigned long DeviceIndex, ADCConfigBlock *config  );
 PUBLIC_EXTERN unsigned long ADC_ResetDevice( unsigned long DeviceIndex  );
 PUBLIC_EXTERN AIORET_TYPE AIOUSB_GetDeviceSerialNumber( unsigned long DeviceIndex );
-PUBLIC_EXTERN AIORET_TYPE ADC_WriteADConfigBlock( unsigned long DeviceIndex , ADConfigBlock *config );
+PUBLIC_EXTERN AIORET_TYPE ADC_WriteADCConfigBlock( unsigned long DeviceIndex , ADCConfigBlock *config );
 
 PUBLIC_EXTERN void PopulateDeviceTableTest(unsigned int *products, int length );
 
@@ -173,22 +173,21 @@ PUBLIC_EXTERN DeviceDescriptor *AIOUSB_GetDevice_Lock( unsigned long DeviceIndex
 
 
 PUBLIC_EXTERN unsigned long AIOUSB_EnsureOpen( unsigned long DeviceIndex );
-PUBLIC_EXTERN const char *ProductIDToName( unsigned int productID );
+
 PUBLIC_EXTERN unsigned int ProductNameToID( const char *name );
-PUBLIC_EXTERN const char *GetSafeDeviceName( unsigned long DeviceIndex );
+
 PUBLIC_EXTERN struct libusb_device_handle *AIOUSB_GetDeviceHandle( unsigned long DeviceIndex );
 PUBLIC_EXTERN struct libusb_device_handle *AIOUSB_GetUSBHandle(DeviceDescriptor *deviceDesc );
 
-PUBLIC_EXTERN unsigned AIOUSB_GetOversample( const ADConfigBlock *config );
-PUBLIC_EXTERN void AIOUSB_SetOversample( ADConfigBlock *config, unsigned overSample );
+
 
 
 PUBLIC_EXTERN int AIOUSB_BulkTransfer( struct libusb_device_handle *dev_handle,
                                        unsigned char endpoint, unsigned char *data, 
                                         int length, int *transferred, unsigned int timeout );
 
-PUBLIC_EXTERN unsigned ADC_GetOversample_Cached( ADConfigBlock *config );
-PUBLIC_EXTERN unsigned ADC_GainCode_Cached( ADConfigBlock *config, unsigned channel);
+PUBLIC_EXTERN unsigned ADC_GetOversample_Cached( ADCConfigBlock *config );
+PUBLIC_EXTERN unsigned ADC_GainCode_Cached( ADCConfigBlock *config, unsigned channel);
 PUBLIC_EXTERN DeviceDescriptor *AIOUSB_GetDevice_NoCheck( unsigned long DeviceIndex  );
 PUBLIC_EXTERN AIORET_TYPE cull_and_average_counts( unsigned long DeviceIndex, 
                                                    unsigned short *counts,

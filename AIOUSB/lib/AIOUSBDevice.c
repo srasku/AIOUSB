@@ -50,7 +50,7 @@ AIORET_TYPE AIOUSBDeviceSetADCConfigBlock( AIOUSBDevice *dev, ADCConfigBlock *co
     } else if (result != AIOUSB_SUCCESS ) 
         return result;
     
-    result = ADCConfigBlockCopyConfig( _get_config( dev ) , conf );
+    result = ADCConfigBlockCopy( _get_config( dev ) , conf );
     return result;
 }
 
@@ -81,6 +81,21 @@ AIORET_TYPE AIOUSBDeviceSetTesting( AIOUSBDevice *dev, AIOUSB_BOOL testing )
         return -AIOUSB_ERROR_INVALID_DATA;
     
     ADCConfigBlockSetTesting( conf, testing );
+
+    return result;
+}
+
+AIORET_TYPE AIOUSBDeviceGetStreamingBlockSize( AIOUSBDevice *dev )
+{
+    AIORET_TYPE result = AIOUSB_SUCCESS;
+    assert( dev );
+    if (!dev )
+        return -AIOUSB_ERROR_INVALID_DEVICE_SETTING;
+    
+    if (dev->bADCStream || dev->bDIOStream)
+        result = dev->StreamingBlockSize;
+    else
+        result = -AIOUSB_ERROR_NOT_SUPPORTED;
 
     return result;
 }

@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <libusb.h>
 #include <stdlib.h>
+#include "ADCConfigBlock.h"
 
 #ifdef __aiousb_cplusplus
 namespace AIOUSB {
@@ -27,18 +28,19 @@ typedef struct aiousb_device {
 USBDevice * NewUSBDevice( unsigned long DeviceIndex );
 void DeleteUSBDevice( USBDevice *dev );
 USBDevice *AIODeviceTableGetUSBDevice( unsigned long DeviceIndex , AIORESULT *result );
+AIORET_TYPE USBDeviceReadADCConfigBlock( USBDevice *usb, ADCConfigBlock *configBlock );
 
 
-int usb_control_transfer(struct aiousb_device *dev_handle,
-                             uint8_t request_type, uint8_t bRequest, uint16_t wValue, uint16_t wIndex,
-                             unsigned char *data, uint16_t wLength, unsigned int timeout);
-int usb_bulk_transfer(struct aiousb_device *dev_handle,
-                      unsigned char endpoint, unsigned char *data, int length,
-                      int *actual_length, unsigned int timeout);
-int usb_request(struct aiousb_device *dev_handle,
-                    uint8_t request_type, uint8_t bRequest, uint16_t wValue, uint16_t wIndex,
-                    unsigned char *data, uint16_t wLength, unsigned int timeout);
-
+AIORET_TYPE usb_control_transfer(struct aiousb_device *dev_handle,
+                                 uint8_t request_type, uint8_t bRequest, uint16_t wValue, uint16_t wIndex,
+                                 unsigned char *data, uint16_t wLength, unsigned int timeout);
+AIORET_TYPE usb_bulk_transfer(struct aiousb_device *dev_handle,
+                              unsigned char endpoint, unsigned char *data, int length,
+                              int *actual_length, unsigned int timeout);
+AIORET_TYPE usb_request(struct aiousb_device *dev_handle,
+                        uint8_t request_type, uint8_t bRequest, uint16_t wValue, uint16_t wIndex,
+                        unsigned char *data, uint16_t wLength, unsigned int timeout);
+ 
 libusb_device_handle *get_usb_device( struct aiousb_device *dev );
 
 

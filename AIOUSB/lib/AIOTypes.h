@@ -13,7 +13,7 @@
 
 /* #include <aiousb.h> */
 
-typedef long AIORET_TYPE;        /* New return type is signed, negative indicates error */
+typedef int AIORET_TYPE;        /* New return type is signed, negative indicates error */
 typedef unsigned long AIORESULT;
 
 
@@ -325,11 +325,23 @@ CREATE_ENUM_W_START( ResultCode, 0,
                      AIOUSB_ERROR_TIMEOUT,
                      AIOUSB_ERROR_HANDLE_EOF,
                      AIOUSB_ERROR_DEVICE_NOT_FOUND,
+                     AIOUSB_ERROR_INVALID_DEVICE,
+                     AIOUSB_ERROR_INVALID_DEVICE_SETTING,
+                     AIOUSB_ERROR_INVALID_DEVICE_FUNCTIONAL_PARAMETER,
+                     AIOUSB_ERROR_INVALID_ADCCONFIG,
                      AIOUSB_ERROR_INVALID_ADCONFIG_SETTING,
                      AIOUSB_ERROR_INVALID_ADCONFIG_CAL_SETTING,
                      AIOUSB_ERROR_INVALID_ADCONFIG_CHANNEL_SETTING,
+                     AIOUSB_ERROR_INVALID_ADCONFIG_OVERSAMPLE_SETTING,
+                     AIOUSB_ERROR_INVALID_ADCONFIG_REGISTER_SETTING,
+                     AIOUSB_ERROR_INVALID_AIOCONTINUOUS_BUFFER,
                      AIOUSB_ERROR_LIBUSB /* Always make the LIBUSB the last element */
                      );
+
+enum {
+  AD_MAX_CHANNELS    = 128,    /* maximum number of channels supported by this driver */
+  AD_GAIN_CODE_MASK  = 7
+};
 
 #define AIOUSB_ERROR_OFFSET 100
 

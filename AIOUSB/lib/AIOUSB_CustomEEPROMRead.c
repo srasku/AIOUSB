@@ -7,11 +7,9 @@
  * ACCES I/O USB API for Linux
  */
 
-
-
+#include "ADCConfigBlock.h"
 #include "AIOUSB_Core.h"
 #include "AIODeviceTable.h"
-
 
 #ifdef __cplusplus
 namespace AIOUSB {
@@ -40,14 +38,14 @@ unsigned long CustomEEPROMRead(
 
     if(!AIOUSB_Lock())
         return AIOUSB_ERROR_INVALID_MUTEX;
+    AIORESULT result = AIOUSB_SUCCESS;
+    AIOUSBDevice *deviceDesc = AIODeviceTableGetDeviceAtIndex( DeviceIndex, &result );
+    if ( result != AIOUSB_SUCCESS ){
+        AIOUSB_UnLock();
+        return result;
+    }
 
-    unsigned long result = AIOUSB_Validate(&DeviceIndex);
-    if(result != AIOUSB_SUCCESS) {
-          AIOUSB_UnLock();
-          return result;
-      }
 
-    DeviceDescriptor *const deviceDesc = &deviceTable[ DeviceIndex ];
     libusb_device_handle *const deviceHandle = AIOUSB_GetDeviceHandle(DeviceIndex);
     if(deviceHandle != NULL) {
           const unsigned timeout = deviceDesc->commTimeout;

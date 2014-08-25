@@ -194,19 +194,18 @@ AIORESULT FindDevices( int **indices, int *length , int minProductID, int maxPro
  */
 unsigned long AIOUSB_GetDeviceProperties(unsigned long DeviceIndex,DeviceProperties *properties ) 
 {
+    AIORESULT result = AIOUSB_SUCCESS;
+    AIOUSBDevice *deviceDesc = AIODeviceTableGetDeviceAtIndex( DeviceIndex, &result );
+    if ( result != AIOUSB_SUCCESS ){
+        AIOUSB_UnLock();
+        return result;
+    }
     if(properties == 0)
         return AIOUSB_ERROR_INVALID_PARAMETER;
     
     if(!AIOUSB_Lock())
         return AIOUSB_ERROR_INVALID_MUTEX;
 
-    unsigned long result = AIOUSB_Validate(&DeviceIndex);
-    if(result != AIOUSB_SUCCESS) {
-          AIOUSB_UnLock();
-          return result;
-      }
-
-    DeviceDescriptor *const deviceDesc = &deviceTable[ DeviceIndex ];
     properties->Name = deviceDesc->cachedName; /* if NULL, name will be requested from device */
     properties->SerialNumber = deviceDesc->cachedSerialNumber; /* if 0, serial number will be requested from device */
     properties->ProductID = deviceDesc->ProductID;
@@ -283,36 +282,6 @@ const char *AIOUSB_GetResultCodeAsString(unsigned long result_value)
       }
     return resultText;
 }
-
-/*----------------------------------------------------------------------------*/
-/* AIORESULT AIOUSB_GetAllDevices()  */
-/* { */
-/*     AIORESULT deviceMask = 0; */
-/*     if(AIOUSB_Lock()) { */
-/*           if(AIOUSB_IsInit()) { */
-/*                 int index; */
-/*                 for (index = 0; index < MAX_USB_DEVICES; index++) { */
-/*                     if (deviceTable[ index ].device != NULL) { */
-/*                             const int MAX_NAME_SIZE = 100; */
-/*                             char name[ MAX_NAME_SIZE + 1 ]; */
-/*                             unsigned long productID; */
-/*                             unsigned long nameSize = MAX_NAME_SIZE; */
-/*                             unsigned long numDIOBytes; */
-/*                             unsigned long numCounters; */
-/*                             AIOUSB_UnLock();                               /\* unlock while communicating with device *\/ */
-/*                             const unsigned long result = QueryDeviceInfo(index, &productID, &nameSize, name, &numDIOBytes, &numCounters); */
-/*                             if (result == AIOUSB_SUCCESS) { */
-/*                                 name[ nameSize ] = '\0'; */
-/*                                 deviceMask = (deviceMask << 1) | 1; */
-/*                             } */
-/*                             AIOUSB_Lock(); */
-/*                         } */
-/*                   } */
-/*             } */
-/*           AIOUSB_UnLock(); */
-/*       } */
-/*     return deviceMask; */
-/* } */
 
 /*----------------------------------------------------------------------------*/
 void AIOUSB_ListDevices() 

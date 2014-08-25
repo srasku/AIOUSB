@@ -52,9 +52,12 @@ ENDIF(BUILD_AIOUSBCPPDBG_SHARED)
 
 SET( tmp_aiousb_files 
   "${CMAKE_CURRENT_SOURCE_DIR}/AIOChannelMask.c" 
+  "${CMAKE_CURRENT_SOURCE_DIR}/AIOChannelRange.c" 
   "${CMAKE_CURRENT_SOURCE_DIR}/AIOContinuousBuffer.c" 
   "${CMAKE_CURRENT_SOURCE_DIR}/AIODeviceInfo.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/AIODeviceTable.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ADCConfigBlock.c"  
+  "${CMAKE_CURRENT_SOURCE_DIR}/AIOUSBDevice.c"  
   "${CMAKE_CURRENT_SOURCE_DIR}/AIOUSB_ADC.c" 
   "${CMAKE_CURRENT_SOURCE_DIR}/AIOUSB_ADC_ExternalCal.c" 
   "${CMAKE_CURRENT_SOURCE_DIR}/AIOUSB_CTR.c" 
@@ -137,21 +140,21 @@ add_dependencies( aiousbdbg aiousbdbg_copies )
 #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 INCLUDE( build_samples )
 
-if( NOT CYGWIN )
-set(SELF_TEST_ENTRIES AIOContinuousBuffer.c )
-foreach( selftest_file ${SELF_TEST_ENTRIES} )
-  set(MY_FLAGS "-DAIOUSB_DEBUG_LOG -DAIO_DEBUG -DTAP_TEST -DHAS_PTHREAD -DSELF_TEST" )
-  set(MY_LIBRARIES aiousbdbg usb-1.0 pthread m )
-  build_selftest_c_file( aiousblibs ${selftest_file} ${MY_FLAGS} ${MY_LIBRARIES} )
-endforeach( selftest_file ${SELF_TEST_ENTRIES}  )
-endif( NOT CYGWIN )
+# if( NOT CYGWIN )
+# set(SELF_TEST_ENTRIES AIOContinuousBuffer.c )
+# foreach( selftest_file ${SELF_TEST_ENTRIES} )
+#   set(MY_FLAGS "-DAIOUSB_DEBUG_LOG -DAIO_DEBUG -DTAP_TEST -DHAS_PTHREAD -DSELF_TEST" )
+#   set(MY_LIBRARIES aiousbdbg usb-1.0 pthread m )
+#   build_selftest_c_file( aiousblibs ${selftest_file} ${MY_FLAGS} ${MY_LIBRARIES} )
+# endforeach( selftest_file ${SELF_TEST_ENTRIES}  )
+# endif( NOT CYGWIN )
 
 
 find_package( GTest ) 
 find_package( GTestTap )
 
 if( GTESTTAP_FOUND )
-  set(GTEST_FILES DIOBuf.c AIOChannelMask.c AIOUSB_Core.c AIODeviceInfo.c )
+  set(GTEST_FILES DIOBuf.c AIOChannelMask.c AIOUSB_Core.c AIODeviceInfo.c AIOContinuousBuffer.c AIODeviceTable.c )
   foreach( gtest ${GTEST_FILES} ) 
     set(MY_FLAGS "-DSELF_TEST -D__aiousb_cplusplus -DGTEST_TAP_PRINT_TO_STDOUT"  )
     set(MY_LIBRARIES aiousbdbg usb-1.0 pthread m gtest aiousb aiousbcpp )

@@ -7,6 +7,7 @@
  */
 
 
+#include "ADCConfigBlock.h"
 #include "AIOUSB_Core.h"
 #include "AIODeviceTable.h"
 #include <assert.h>
@@ -72,13 +73,13 @@ unsigned long AIOUSB_ADC_ExternalCal(
     if(!AIOUSB_Lock())
         return AIOUSB_ERROR_INVALID_MUTEX;
 
-    unsigned long result = AIOUSB_Validate(&DeviceIndex);
-    if(result != AIOUSB_SUCCESS) {
-          AIOUSB_UnLock();
-          return result;
-      }
+    AIORESULT result = AIOUSB_SUCCESS;
+    AIOUSBDevice *deviceDesc = AIODeviceTableGetDeviceAtIndex( DeviceIndex, &result );
+    if ( result != AIOUSB_SUCCESS ){
+        AIOUSB_UnLock();
+        return result;
+    }
 
-    DeviceDescriptor *const deviceDesc = &deviceTable[ DeviceIndex ];
     if(deviceDesc->bADCStream == AIOUSB_FALSE) {
           AIOUSB_UnLock();
           return AIOUSB_ERROR_NOT_SUPPORTED;

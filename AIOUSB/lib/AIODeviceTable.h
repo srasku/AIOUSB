@@ -24,12 +24,15 @@ PUBLIC_EXTERN AIOUSBDevice *AIODeviceTableGetDeviceAtIndex( unsigned long index 
 PUBLIC_EXTERN unsigned long QueryDeviceInfo( unsigned long DeviceIndex, unsigned long *pPID, unsigned long *pNameSize, 
                                              char *pName, unsigned long *pDIOBytes, unsigned long *pCounters );
 
+PUBLIC_EXTERN char *GetSafeDeviceName( unsigned long DeviceIndex );
+PUBLIC_EXTERN char *ProductIDToName( unsigned int productID );
+
 PUBLIC_EXTERN AIORESULT AIOUSB_Init(void);
 PUBLIC_EXTERN AIORESULT AIOUSB_EnsureOpen(unsigned long DeviceIndex);
-PUBLIC_EXTERN AIORESULT AIOUSB_Validate(unsigned long *DeviceIndex);
 PUBLIC_EXTERN AIOUSB_BOOL AIOUSB_IsInit();
 PUBLIC_EXTERN void AIOUSB_Exit();
 PUBLIC_EXTERN AIORESULT AIOUSB_Reset( unsigned long DeviceIndex );
+PUBLIC_EXTERN void AIODeviceTableInit(void);
 
 
 PUBLIC_EXTERN void CloseAllDevices(void);

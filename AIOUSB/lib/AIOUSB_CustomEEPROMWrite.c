@@ -1,17 +1,14 @@
-/*
- * $RCSfile: AIOUSB_CustomEEPROMWrite.c,v $
- * $Revision: 1.4 $
- * $Date: 2009/11/02 17:17:08 $
- * jEdit:tabSize=4:indentSize=4:collapseFolds=1:
+/**
+ * @file   AIOUSB_CustomEEPROMWrite.c
+ * @author $Format: %an <%ae>$
+ * @date   $Format: %ad$
+ * @version $Format: %t$
+ * @brief  General header files for the AIOUSB library
  *
- * ACCES I/O USB API for Linux
  */
-
-
 
 #include "AIOUSB_Core.h"
 #include "AIODeviceTable.h"
-
 
 #ifdef __cplusplus
 namespace AIOUSB {
@@ -41,13 +38,13 @@ unsigned long CustomEEPROMWrite(
     if(!AIOUSB_Lock())
         return AIOUSB_ERROR_INVALID_MUTEX;
 
-    unsigned long result = AIOUSB_Validate(&DeviceIndex);
-    if(result != AIOUSB_SUCCESS) {
-          AIOUSB_UnLock();
-          return result;
-      }
+    AIORESULT result = AIOUSB_SUCCESS;
+    AIOUSBDevice *deviceDesc = AIODeviceTableGetDeviceAtIndex( DeviceIndex, &result );
+    if ( result != AIOUSB_SUCCESS ){
+        AIOUSB_UnLock();
+        return result;
+    }
 
-    DeviceDescriptor *const deviceDesc = &deviceTable[ DeviceIndex ];
     libusb_device_handle *const deviceHandle = AIOUSB_GetDeviceHandle(DeviceIndex);
     if(deviceHandle != NULL) {
           const unsigned timeout = deviceDesc->commTimeout;

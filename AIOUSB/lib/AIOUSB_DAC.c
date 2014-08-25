@@ -8,6 +8,7 @@
 
 #include "AIOUSB_Core.h"
 #include "AIODeviceTable.h"
+#include "AIOUSBDevice.h"
 #include <assert.h>
 #include <math.h>
 #include <string.h>
@@ -16,17 +17,18 @@
 namespace AIOUSB {
 #endif
 
-unsigned long DACDirect(unsigned long DeviceIndex,unsigned short Channel,unsigned short Value){
+/*----------------------------------------------------------------------------*/
+unsigned long DACDirect(unsigned long DeviceIndex,unsigned short Channel,unsigned short Value)
+{
     if (!AIOUSB_Lock())
         return AIOUSB_ERROR_INVALID_MUTEX;
 
-    unsigned long result = AIOUSB_Validate(&DeviceIndex);
-    if (result != AIOUSB_SUCCESS) {
+    AIORESULT result = AIOUSB_SUCCESS;
+    AIOUSBDevice *deviceDesc = AIODeviceTableGetDeviceAtIndex( DeviceIndex, &result );
+    if ( result != AIOUSB_SUCCESS ){
         AIOUSB_UnLock();
         return result;
     }
-
-    DeviceDescriptor *const deviceDesc = &deviceTable[ DeviceIndex ];
     if (deviceDesc->ImmDACs == 0) {
         AIOUSB_UnLock();
         return AIOUSB_ERROR_NOT_SUPPORTED;
@@ -135,9 +137,10 @@ unsigned long DACDirect(unsigned long DeviceIndex,unsigned short Channel,unsigne
  * blocks from block 0 up to the block containing the highest channel number being set
  */
 unsigned long DACMultiDirect( unsigned long DeviceIndex,
-                             unsigned short *pDACData,
-                             unsigned long DACDataCount
-                             ) {
+                              unsigned short *pDACData,
+                              unsigned long DACDataCount
+                              ) 
+{
     if (
         pDACData == NULL ||
         DACDataCount > 10000                                            // arbitrary limit to prevent code from blowing up
@@ -150,17 +153,17 @@ unsigned long DACMultiDirect( unsigned long DeviceIndex,
     if (!AIOUSB_Lock())
         return AIOUSB_ERROR_INVALID_MUTEX;
 
-    unsigned long result = AIOUSB_Validate(&DeviceIndex);
-    if (result != AIOUSB_SUCCESS) {
-          AIOUSB_UnLock();
-          return result;
-      }
+    AIORESULT result = AIOUSB_SUCCESS;
+    AIOUSBDevice *deviceDesc = AIODeviceTableGetDeviceAtIndex( DeviceIndex, &result );
+    if ( result != AIOUSB_SUCCESS ){
+        AIOUSB_UnLock();
+        return result;
+    }
 
-    DeviceDescriptor *const deviceDesc = &deviceTable[ DeviceIndex ];
     if (deviceDesc->ImmDACs == 0) {
-          AIOUSB_UnLock();
-          return AIOUSB_ERROR_NOT_SUPPORTED;
-      }
+        AIOUSB_UnLock();
+        return AIOUSB_ERROR_NOT_SUPPORTED;
+    }
 
     if (
         deviceDesc->bDACStream &&
@@ -230,8 +233,6 @@ unsigned long DACMultiDirect( unsigned long DeviceIndex,
     return result;
 }
 
-
-
 /*----------------------------------------------------------------------------*/
 /*
  * @brief Sets the range code for the DAC
@@ -239,24 +240,25 @@ unsigned long DACMultiDirect( unsigned long DeviceIndex,
  * @param RangeCode
  * @return
  */
-unsigned long DACSetBoardRange(unsigned long DeviceIndex,unsigned long RangeCode ) {
+unsigned long DACSetBoardRange(unsigned long DeviceIndex,unsigned long RangeCode ) 
+{
     if ( RangeCode < DAC_RANGE_0_5V || RangeCode > DAC_RANGE_10V )
         return AIOUSB_ERROR_INVALID_PARAMETER;
 
     if (!AIOUSB_Lock())
         return AIOUSB_ERROR_INVALID_MUTEX;
 
-    unsigned long result = AIOUSB_Validate(&DeviceIndex);
-    if (result != AIOUSB_SUCCESS) {
-          AIOUSB_UnLock();
-          return result;
-      }
+    AIORESULT result = AIOUSB_SUCCESS;
+    AIOUSBDevice *deviceDesc = AIODeviceTableGetDeviceAtIndex( DeviceIndex, &result );
+    if ( result != AIOUSB_SUCCESS ){
+        AIOUSB_UnLock();
+        return result;
+    }
 
-    DeviceDescriptor *const deviceDesc = &deviceTable[ DeviceIndex ];
     if (deviceDesc->bDACBoardRange == AIOUSB_FALSE) {
-          AIOUSB_UnLock();
-          return AIOUSB_ERROR_NOT_SUPPORTED;
-      }
+        AIOUSB_UnLock();
+        return AIOUSB_ERROR_NOT_SUPPORTED;
+    }
 
     libusb_device_handle *const deviceHandle = AIOUSB_GetDeviceHandle(DeviceIndex);
     if (deviceHandle != NULL) {
@@ -277,21 +279,24 @@ unsigned long DACSetBoardRange(unsigned long DeviceIndex,unsigned long RangeCode
 
 
 /*----------------------------------------------------------------------------*/
-unsigned long DACOutputOpen(unsigned long DeviceIndex,double *pClockHz) {
+unsigned long DACOutputOpen(unsigned long DeviceIndex,double *pClockHz) 
+{
   // TODO: this function is not yet implemented
     return AIOUSB_ERROR_NOT_SUPPORTED;
 }
 
 
 /*----------------------------------------------------------------------------*/
-unsigned long DACOutputClose(unsigned long DeviceIndex,unsigned long bWait) {
+unsigned long DACOutputClose(unsigned long DeviceIndex,unsigned long bWait) 
+{
   // TODO: this function is not yet implemented
     return AIOUSB_ERROR_NOT_SUPPORTED;
 }
 
 
 /*----------------------------------------------------------------------------*/
-unsigned long DACOutputCloseNoEnd( unsigned long DeviceIndex, unsigned long bWait ) {
+unsigned long DACOutputCloseNoEnd( unsigned long DeviceIndex, unsigned long bWait ) 
+{
   // TODO: this function is not yet implemented
     return AIOUSB_ERROR_NOT_SUPPORTED;
 }
@@ -299,7 +304,8 @@ unsigned long DACOutputCloseNoEnd( unsigned long DeviceIndex, unsigned long bWai
 
 
 /*----------------------------------------------------------------------------*/
-unsigned long DACOutputSetCount(unsigned long DeviceIndex, unsigned long NewCount) {
+unsigned long DACOutputSetCount(unsigned long DeviceIndex, unsigned long NewCount) 
+{
   // TODO: this function is not yet implemented
     return AIOUSB_ERROR_NOT_SUPPORTED;
 } 
@@ -310,7 +316,8 @@ unsigned long DACOutputSetCount(unsigned long DeviceIndex, unsigned long NewCoun
 unsigned long DACOutputFrame(unsigned long DeviceIndex,
                              unsigned long FramePoints,
                              unsigned short *FrameData
-                             ) {
+                             ) 
+{
   // TODO: this function is not yet implemented
     return AIOUSB_ERROR_NOT_SUPPORTED;
 }
@@ -322,8 +329,9 @@ unsigned long DACOutputFrameRaw(
                                 unsigned long DeviceIndex,
                                 unsigned long FramePoints,
                                 unsigned short *FrameData
-                                ) {
-  // TODO: this function is not yet implemented
+                                ) 
+{
+    // TODO: this function is not yet implemented
     return AIOUSB_ERROR_NOT_SUPPORTED;
 }
 
@@ -332,7 +340,8 @@ unsigned long DACOutputFrameRaw(
 /*----------------------------------------------------------------------------*/
 unsigned long DACOutputStart(
                              unsigned long DeviceIndex
-                             ) {
+                             ) 
+{
   // TODO: this function is not yet implemented
     return AIOUSB_ERROR_NOT_SUPPORTED;
 }
