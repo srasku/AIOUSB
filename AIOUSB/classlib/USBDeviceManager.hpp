@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 #include <aiousb.h>
-#include <USBDevice.hpp>
+#include <USBDeviceBase.hpp>
 
 
 namespace AIOUSB {

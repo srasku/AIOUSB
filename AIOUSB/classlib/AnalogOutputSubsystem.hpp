@@ -32,7 +32,7 @@ protected:
 	int maxCounts;								// maximum counts D/A can output (typically 0xfff or 0xffff)
 
 public:
-	AnalogOutputSubsystem( USBDevice &parent );
+	AnalogOutputSubsystem( USBDeviceBase &parent );
 	virtual ~AnalogOutputSubsystem();
 
 	/*

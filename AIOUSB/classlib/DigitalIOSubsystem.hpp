@@ -44,7 +44,7 @@ protected:
 public:
 	UCharArray &bitsToBytes( UCharArray &dest, int bit, const BoolArray &src );
 	BoolArray &bytesToBits( BoolArray &dest, const UCharArray &src, int bit );
-	DigitalIOSubsystem( USBDevice &parent );
+	DigitalIOSubsystem( USBDeviceBase &parent );
 	virtual ~DigitalIOSubsystem();
 
 

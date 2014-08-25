@@ -12,9 +12,9 @@
 
 #include "AIOTypes.h"
 #include "AIOChannelMask.h"
+#include "AIOUSB_ADC.h"
 #include "AIOTypes.h"
 #include "AIOUSB_Core.h"
-#include "aiousb.h"
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>

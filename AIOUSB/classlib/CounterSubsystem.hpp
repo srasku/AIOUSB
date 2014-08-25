@@ -40,7 +40,7 @@ protected:
 
 
 public:
-	CounterSubsystem( USBDevice &parent );
+	CounterSubsystem( USBDeviceBase &parent );
 	virtual ~CounterSubsystem();
 
 	/*

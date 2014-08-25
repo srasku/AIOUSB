@@ -59,7 +59,7 @@ protected:
 
 
 protected:
-	AO16_AnalogOutputSubsystem( USBDevice &parent );
+	AO16_AnalogOutputSubsystem( USBDeviceBase &parent );
 	virtual ~AO16_AnalogOutputSubsystem();
 
 

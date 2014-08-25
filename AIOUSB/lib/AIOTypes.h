@@ -11,8 +11,6 @@
 #define _AIOTYPES_H
 #define HAS_PTHREAD 1
 
-/* #include <aiousb.h> */
-
 typedef int AIORET_TYPE;        /* New return type is signed, negative indicates error */
 typedef unsigned long AIORESULT;
 

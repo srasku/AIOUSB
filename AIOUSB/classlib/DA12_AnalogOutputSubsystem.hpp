@@ -67,7 +67,7 @@ protected:
 
 
 protected:
-	DA12_AnalogOutputSubsystem( USBDevice &parent );
+	DA12_AnalogOutputSubsystem( USBDeviceBase &parent );
 	virtual ~DA12_AnalogOutputSubsystem();
 
 

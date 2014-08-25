@@ -10,7 +10,6 @@
 
 #include "AIOUSB_Core.h"
 #include "AIOTypes.h"
-#include "aiousb.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -21,8 +20,7 @@ namespace AIOUSB
 {
 #endif
 
-PUBLIC_EXTERN AIORESULT AIOUSB_GetDeviceByProductID(int minProductID,int maxProductID,
-                                                    int maxDevices, int *deviceList );
+PUBLIC_EXTERN AIORESULT AIOUSB_GetDeviceByProductID(int minProductID,int maxProductID,int maxDevices, int *deviceList );
 PUBLIC_EXTERN AIORESULT GetDeviceBySerialNumber(unsigned long *pSerialNumber);
 PUBLIC_EXTERN AIORESULT GetDeviceSerialNumber(unsigned long DeviceIndex, unsigned long *pSerialNumber );
 PUBLIC_EXTERN AIORET_TYPE AIOUSB_GetDeviceSerialNumber( unsigned long DeviceIndex );

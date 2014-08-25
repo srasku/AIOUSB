@@ -1,7 +1,7 @@
 #ifndef AIOUSB_WDG_H
 #define AIOUSB_WDG_H
 
-#include "aiousb.h"
+#include "AIOTypes.h"
 
 #ifdef __aiousb_cplusplus
 namespace AIOUSB

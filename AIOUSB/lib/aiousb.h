@@ -21,20 +21,9 @@
 #include "AIOUSB_DIO.h"
 #include "AIOUSB_ADC.h"
 #include "AIOUSB_CTR.h"
+#include "AIOUSB_DAC.h"
+#include "AIOUSB_CustomEEPROM.h"
 #include "USBDevice.h"
 
-#ifdef __aiousb_cplusplus
-namespace AIOUSB
-{
 #endif
 
-
-#ifdef __aiousb_cplusplus
-}
-#endif
-
-
-#endif
-
-
-/* end of file */

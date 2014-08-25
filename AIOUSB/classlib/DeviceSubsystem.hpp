@@ -12,7 +12,7 @@
 #define DeviceSubsystem_hpp
 
 
-#include <USBDevice.hpp>
+#include <USBDeviceBase.hpp>
 
 
 namespace AIOUSB {
@@ -27,11 +27,11 @@ class DeviceSubsystem {
 protected:
 
 
-	USBDevice *parent;							// parent device that this subsystem is part of
+	USBDeviceBase *parent;							// parent device that this subsystem is part of
 
 
 
-	DeviceSubsystem( USBDevice &parent );
+	DeviceSubsystem( USBDeviceBase &parent );
 	virtual ~DeviceSubsystem();
 	int getDeviceIndex() const;
 
@@ -49,7 +49,7 @@ public:
 	 * @return The parent device that this subsystem is part of.
 	 */
 
-	USBDevice &getParent() {
+	USBDeviceBase &getParent() {
 		return *parent;
 	}	// getParent()
 
