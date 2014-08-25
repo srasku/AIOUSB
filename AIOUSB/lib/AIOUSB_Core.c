@@ -218,73 +218,6 @@ AIOUSB_BOOL AIOUSB_UnLock()
 #endif
 }
 
-/*----------------------------------------------------------------------------*/
-unsigned long AIOUSB_Validate_Lock(unsigned long *DeviceIndex)
-{
-    unsigned long result = (unsigned long)AIOUSB_SUCCESS;
-    assert(DeviceIndex != 0);
-
-    if ( !AIOUSB_Lock() )
-        return AIOUSB_ERROR_INVALID_MUTEX;
-
-    if ( !AIOUSB_IsInit() )
-        goto unlock_mutex;
-
-    if(*DeviceIndex == diFirst) {
-        /*
-         * find first device on bus
-         */
-        result = AIOUSB_ERROR_FILE_NOT_FOUND;
-        int index;
-        for(index = 0; index < MAX_USB_DEVICES; index++) {
-            if(deviceTable[ index ].device != NULL) {
-                *DeviceIndex = index;
-                result = AIOUSB_SUCCESS;
-                break;                                              // from for()
-            }
-        }
-    } else if (*DeviceIndex == diOnly) {
-        /*
-         * find first device on bus, ensuring that it's the only device
-         */
-        result = AIOUSB_ERROR_FILE_NOT_FOUND;
-        int index;
-        for(index = 0; index < MAX_USB_DEVICES; index++) {
-            if(deviceTable[ index ].device != NULL) {
-                /* found a device */
-                if(result != AIOUSB_SUCCESS) {
-                    /*
-                     * this is the first device found; save this index, but
-                     * keep checking to see that this is the only device
-                     */
-                    *DeviceIndex = index;
-                    result = AIOUSB_SUCCESS;
-                } else {
-                    /*
-                     * there are multiple devices on the bus
-                     */
-                    result = AIOUSB_ERROR_DUP_NAME;
-                    break;                             
-                }
-            }
-        }
-    } else {
-        /*
-         * simply verify that the supplied index is valid
-         */
-        if(
-           *DeviceIndex < MAX_USB_DEVICES &&
-           deviceTable[ *DeviceIndex ].device != NULL
-           )
-            result = AIOUSB_SUCCESS;
-        else
-            result = AIOUSB_ERROR_INVALID_INDEX;
-    }
-
- unlock_mutex:
-    AIOUSB_UnLock();
-    return result;
-}
 
 struct libusb_device_handle * AIOUSB_GetUSBHandle( DeviceDescriptor *deviceDesc ) 
 {
@@ -324,8 +257,6 @@ PRIVATE struct libusb_device_handle *AIOUSB_GetDeviceHandle(unsigned long Device
     AIOUSB_UnLock();
     return deviceHandle;
 }
-
-
 
 /**
  * @details This function is intended to improve upon
@@ -378,18 +309,6 @@ PRIVATE int AIOUSB_BulkTransfer(
 }
 
 /*------------------------------------------------------------------------*/
-DeviceDescriptor *DeviceTableAtIndex( unsigned long DeviceIndex ) 
-{ 
-    AIORESULT result = AIOUSB_SUCCESS;
-    AIOUSBDevice *deviceDesc = AIODeviceTableGetDeviceAtIndex( DeviceIndex, &result );
-    if ( result != AIOUSB_SUCCESS ){
-        AIOUSB_UnLock();
-        return NULL;
-    }
-
-    return (DeviceDescriptor*)deviceDesc;
-}
-/*------------------------------------------------------------------------*/
 /**
  * @todo Replace AIOUSB_Lock() with thread safe lock on a per device index basis
  * @todo Insert correct error messages into global error string in case of failure
@@ -419,53 +338,6 @@ DeviceDescriptor *AIOUSB_GetDevice_Lock(unsigned long DeviceIndex, unsigned long
         *result = AIOUSB_ERROR_DEVICE_NOT_FOUND;
     }
     return (DeviceDescriptor*)deviceDesc;
-}
-
-
-AIORET_TYPE AIOUSB_GetDeviceSerialNumber( unsigned long DeviceIndex ) {
-    unsigned long val = 0;
-    unsigned long retval;
-    retval = GetDeviceSerialNumber( DeviceIndex, &val );
-    if( retval != AIOUSB_SUCCESS ) {
-      return -1*(AIORET_TYPE)retval;
-    } else {
-      return (AIORET_TYPE)val;
-    }
-}
-
-/**
- * @brief 
- * @param DeviceIndex 
- * @param pSerialNumber 
- * @return 0 if successful, otherwise
- */
-AIORESULT GetDeviceSerialNumber(
-                                unsigned long DeviceIndex,
-                                unsigned long *pSerialNumber
-                                ) 
-{
-    if( !pSerialNumber )
-        return AIOUSB_ERROR_INVALID_PARAMETER;
-
-    unsigned long bytes_read = sizeof(unsigned long);
-    unsigned long buffer_data;
-    AIORESULT result = AIOUSB_SUCCESS;
-    AIODeviceTableGetDeviceAtIndex( DeviceIndex, &result );
-    if ( result != AIOUSB_SUCCESS ){
-        AIOUSB_UnLock();
-        return result;
-    }
-
-    result = GenericVendorRead( DeviceIndex, AUR_EEPROM_READ , EEPROM_SERIAL_NUMBER_ADDRESS, 0 , &buffer_data, &bytes_read );
-    if( result != AIOUSB_SUCCESS )
-        goto out_GetDeviceSerialNumber;
-
-    *pSerialNumber = (unsigned long)buffer_data;
-
-out_GetDeviceSerialNumber:
-    AIOUSB_UnLock();
-
-    return result;
 }
 
 /**

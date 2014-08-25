@@ -125,6 +125,51 @@ unsigned long AIOUSB_GetDeviceByProductID(int minProductID,
 }
 
 /*----------------------------------------------------------------------------*/
+AIORET_TYPE AIOUSB_GetDeviceSerialNumber( unsigned long DeviceIndex ) 
+{
+    unsigned long val = 0;
+    unsigned long retval;
+    retval = GetDeviceSerialNumber( DeviceIndex, &val );
+    if( retval != AIOUSB_SUCCESS ) {
+      return -1*(AIORET_TYPE)retval;
+    } else {
+      return (AIORET_TYPE)val;
+    }
+}
+
+/**
+ * @brief 
+ * @param DeviceIndex 
+ * @param pSerialNumber 
+ * @return 0 if successful, otherwise
+ */
+AIORESULT GetDeviceSerialNumber(unsigned long DeviceIndex, unsigned long *pSerialNumber ) 
+{
+    if( !pSerialNumber )
+        return AIOUSB_ERROR_INVALID_PARAMETER;
+
+    unsigned long bytes_read = sizeof(unsigned long);
+    unsigned long buffer_data;
+    AIORESULT result = AIOUSB_SUCCESS;
+    AIODeviceTableGetDeviceAtIndex( DeviceIndex, &result );
+    if ( result != AIOUSB_SUCCESS ){
+        AIOUSB_UnLock();
+        return result;
+    }
+
+    result = GenericVendorRead( DeviceIndex, AUR_EEPROM_READ , EEPROM_SERIAL_NUMBER_ADDRESS, 0 , &buffer_data, &bytes_read );
+    if( result != AIOUSB_SUCCESS )
+        goto out_GetDeviceSerialNumber;
+
+    *pSerialNumber = (unsigned long)buffer_data;
+
+out_GetDeviceSerialNumber:
+    AIOUSB_UnLock();
+
+    return result;
+}
+
+/*----------------------------------------------------------------------------*/
 unsigned long GetDeviceBySerialNumber(unsigned long *pSerialNumber) 
 {
     unsigned long deviceIndex = diNone;

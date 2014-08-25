@@ -8,11 +8,9 @@
 
 COBJS := \
 AIOUSB_ADC.o \
-AIOUSB_ADC_ExternalCal.o \
 AIOUSB_Core.o \
 AIOUSB_CTR.o \
-AIOUSB_CustomEEPROMRead.o \
-AIOUSB_CustomEEPROMWrite.o \
+AIOUSB_CustomEEPROM.o \
 AIOUSB_DAC.o \
 AIOUSB_DIO.o \
 AIOUSB_WDG.o \

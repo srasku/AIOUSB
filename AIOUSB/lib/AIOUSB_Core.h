@@ -13,6 +13,7 @@
 #define PRIVATE
 
 #include "AIODataTypes.h"
+#include "ADCConfigBlock.h"
 #include "libusb.h"
 #include <pthread.h>
 #include <semaphore.h>
@@ -143,8 +144,6 @@ extern struct ADRange adRanges[ AD_NUM_GAIN_CODES ];
 extern unsigned long AIOUSB_INIT_PATTERN;
 extern unsigned long aiousbInit ;
 
-
-
 PUBLIC_EXTERN AIOBuf *CreateSmartBuffer( unsigned long DeviceIndex );
 PUBLIC_EXTERN unsigned long ADC_CopyConfig(unsigned long DeviceIndex, ADCConfigBlock *config  );
 PUBLIC_EXTERN unsigned long ADC_ResetDevice( unsigned long DeviceIndex  );
@@ -159,27 +158,42 @@ PUBLIC_EXTERN DeviceDescriptor deviceTable[ MAX_USB_DEVICES ];
 PUBLIC_EXTERN AIOUSB_BOOL AIOUSB_Lock(void);
 PUBLIC_EXTERN AIOUSB_BOOL AIOUSB_UnLock(void);
 
-/* #define AIOUSB_IsInit()  ( aiousbInit == AIOUSB_INIT_PATTERN ) */
+
 PUBLIC_EXTERN unsigned long AIOUSB_InitTest(void);
-/* PUBLIC_EXTERN unsigned long AIOUSB_Validate( unsigned long *DeviceIndex ); */
 PUBLIC_EXTERN unsigned long AIOUSB_Validate_Lock(  unsigned long *DeviceIndex ) ;
 
-PUBLIC_EXTERN DeviceDescriptor *DeviceTableAtIndex( unsigned long DeviceIndex );
 PUBLIC_EXTERN DeviceDescriptor *DeviceTableAtIndex_Lock( unsigned long DeviceIndex );
-
-PUBLIC_EXTERN DeviceDescriptor *AIOUSB_GetDevice_Lock( unsigned long DeviceIndex , 
-                                                        unsigned long *result
-                                                        );
-
+PUBLIC_EXTERN DeviceDescriptor *AIOUSB_GetDevice_Lock( unsigned long DeviceIndex , unsigned long *result );
 
 PUBLIC_EXTERN unsigned long AIOUSB_EnsureOpen( unsigned long DeviceIndex );
+PUBLIC_EXTERN unsigned long AIOUSB_ClearFIFO( unsigned long DeviceIndex, FIFO_Method Method );
 
 PUBLIC_EXTERN unsigned int ProductNameToID( const char *name );
 
 PUBLIC_EXTERN struct libusb_device_handle *AIOUSB_GetDeviceHandle( unsigned long DeviceIndex );
 PUBLIC_EXTERN struct libusb_device_handle *AIOUSB_GetUSBHandle(DeviceDescriptor *deviceDesc );
 
+PUBLIC_EXTERN const char *AIOUSB_GetVersion(void);
+PUBLIC_EXTERN const char *AIOUSB_GetVersionDate(void);
+PUBLIC_EXTERN const char *AIOUSB_GetResultCodeAsString( unsigned long value );
 
+
+PUBLIC_EXTERN long AIOUSB_GetStreamingBlockSize(unsigned long DeviceIndex);
+PUBLIC_EXTERN unsigned long AIOUSB_SetStreamingBlockSize(unsigned long DeviceIndex,unsigned long BlockSize );
+
+PUBLIC_EXTERN double AIOUSB_GetMiscClock( unsigned long DeviceIndex );
+PUBLIC_EXTERN unsigned long AIOUSB_SetMiscClock( unsigned long DeviceIndex, double clockHz );
+
+PUBLIC_EXTERN AIORET_TYPE AIOUSB_GetCommTimeout(unsigned long DeviceIndex );
+PUBLIC_EXTERN AIORET_TYPE AIOUSB_SetCommTimeout(unsigned long DeviceIndex,unsigned timeout );
+PUBLIC_EXTERN AIOUSB_BOOL AIOUSB_IsDiscardFirstSample(unsigned long DeviceIndex );
+PUBLIC_EXTERN unsigned long AIOUSB_SetDiscardFirstSample(unsigned long DeviceIndex,AIOUSB_BOOL discard );
+
+PUBLIC_EXTERN double AIOUSB_CountsToVolts(unsigned long DeviceIndex,unsigned channel,unsigned short counts );
+
+PUBLIC_EXTERN unsigned long AIOUSB_MultipleCountsToVolts(unsigned long DeviceIndex,unsigned startChannel,unsigned endChannel,const unsigned short counts[], double volts[] );
+PUBLIC_EXTERN unsigned short AIOUSB_VoltsToCounts(unsigned long DeviceIndex, unsigned channel, double volts );
+PUBLIC_EXTERN unsigned long AIOUSB_MultipleVoltsToCounts(unsigned long DeviceIndex,unsigned startChannel,unsigned endChannel,const double volts[],unsigned short counts[] );
 
 
 PUBLIC_EXTERN int AIOUSB_BulkTransfer( struct libusb_device_handle *dev_handle,

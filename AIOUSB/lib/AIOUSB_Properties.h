@@ -21,12 +21,12 @@ namespace AIOUSB
 {
 #endif
 
-PUBLIC_EXTERN AIORESULT AIOUSB_GetDeviceByProductID(int minProductID,
-                                                        int maxProductID,
-                                                        int maxDevices,
-                                                        int *deviceList
-                                          );
+PUBLIC_EXTERN AIORESULT AIOUSB_GetDeviceByProductID(int minProductID,int maxProductID,
+                                                    int maxDevices, int *deviceList );
 PUBLIC_EXTERN AIORESULT GetDeviceBySerialNumber(unsigned long *pSerialNumber);
+PUBLIC_EXTERN AIORESULT GetDeviceSerialNumber(unsigned long DeviceIndex, unsigned long *pSerialNumber );
+PUBLIC_EXTERN AIORET_TYPE AIOUSB_GetDeviceSerialNumber( unsigned long DeviceIndex );
+
 PUBLIC_EXTERN AIORESULT FindDevices( int **indices, int *length , int minProductID, int maxProductID  );
 PUBLIC_EXTERN AIORESULT AIOUSB_GetDeviceProperties(unsigned long DeviceIndex, DeviceProperties *properties );
 PUBLIC_EXTERN const char *AIOUSB_GetResultCodeAsString(unsigned long result_value);

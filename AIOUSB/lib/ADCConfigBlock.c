@@ -197,7 +197,7 @@ AIORET_TYPE  ADCConfigBlockGetGainCode(const ADCConfigBlock *config, unsigned ch
 }
 
 /*----------------------------------------------------------------------------*/
-AIORET_TYPE ADCConfigBlockSetGainCode(ADCConfigBlock *config, unsigned channel, ADGainCode gainCode)
+AIORET_TYPE ADCConfigBlockSetGainCode(ADCConfigBlock *config, unsigned channel, unsigned char gainCode)
 {
     if (!config || !config->device || !config->size ) 
         return -AIOUSB_ERROR_INVALID_DATA;

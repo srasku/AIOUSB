@@ -6,6 +6,7 @@
  * @brief Core code to handle DACs on AIOUSB devices.
  */
 
+#include "AIOUSB_DAC.h"
 #include "AIOUSB_Core.h"
 #include "AIODeviceTable.h"
 #include "AIOUSBDevice.h"
