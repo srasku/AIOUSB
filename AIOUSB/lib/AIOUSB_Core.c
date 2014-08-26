@@ -161,7 +161,7 @@ const int NUM_PROD_NAMES = sizeof(productIDNameTable) / sizeof(productIDNameTabl
 
 #define AIOUSB_ENABLE_MUTEX
 
-PRIVATE DeviceDescriptor deviceTable[ MAX_USB_DEVICES ];
+/* PRIVATE DeviceDescriptor deviceTable[ MAX_USB_DEVICES ]; */
 #if defined(AIOUSB_ENABLE_MUTEX)
 static pthread_mutex_t aiousbMutex;
 #endif
@@ -219,7 +219,7 @@ AIOUSB_BOOL AIOUSB_UnLock()
 }
 
 
-struct libusb_device_handle * AIOUSB_GetUSBHandle( DeviceDescriptor *deviceDesc ) 
+struct libusb_device_handle * AIOUSB_GetUSBHandle( AIOUSBDevice *deviceDesc ) 
 {
     return deviceDesc->deviceHandle;
 }
@@ -313,7 +313,7 @@ PRIVATE int AIOUSB_BulkTransfer(
  * @todo Replace AIOUSB_Lock() with thread safe lock on a per device index basis
  * @todo Insert correct error messages into global error string in case of failure
  */
-DeviceDescriptor *DeviceTableAtIndex_Lock( unsigned long DeviceIndex ) 
+AIOUSBDevice *DeviceTableAtIndex_Lock( unsigned long DeviceIndex ) 
 { 
     AIORESULT result = AIOUSB_SUCCESS;
     AIOUSBDevice *deviceDesc = AIODeviceTableGetDeviceAtIndex( DeviceIndex, &result );
@@ -323,10 +323,10 @@ DeviceDescriptor *DeviceTableAtIndex_Lock( unsigned long DeviceIndex )
     }
     if( deviceDesc ) 
         AIOUSB_Lock();
-    return (DeviceDescriptor *)deviceDesc;
+    return (AIOUSBDevice *)deviceDesc;
 }
 
-DeviceDescriptor *AIOUSB_GetDevice_Lock(unsigned long DeviceIndex, unsigned long *result) {
+AIOUSBDevice *AIOUSB_GetDevice_Lock(unsigned long DeviceIndex, unsigned long *result) {
 
     AIOUSBDevice *deviceDesc = AIODeviceTableGetDeviceAtIndex( DeviceIndex, result );
     if ( *result != AIOUSB_SUCCESS ){
@@ -337,7 +337,7 @@ DeviceDescriptor *AIOUSB_GetDevice_Lock(unsigned long DeviceIndex, unsigned long
         AIOUSB_UnLock();
         *result = AIOUSB_ERROR_DEVICE_NOT_FOUND;
     }
-    return (DeviceDescriptor*)deviceDesc;
+    return (AIOUSBDevice*)deviceDesc;
 }
 
 /**
@@ -853,8 +853,13 @@ unsigned long GenericVendorWrite(
                                  void *bufData,
                                  unsigned long *bytes_written
                                  ) {
-    unsigned long result;
-    DeviceDescriptor *deviceDesc = AIOUSB_GetDevice_Lock( deviceIndex, &result );
+    /* unsigned long result; */
+    /* AIOUSBDevice *deviceDesc = AIOUSB_GetDevice_Lock( deviceIndex, &result ); */
+    AIORESULT result ;
+    AIOUSBDevice *deviceDesc = AIODeviceTableGetDeviceAtIndex( deviceIndex , &result );
+    if ( result != AIOUSB_SUCCESS )
+        return result;
+
     libusb_device_handle *deviceHandle;
     int bytesTransferred;
 

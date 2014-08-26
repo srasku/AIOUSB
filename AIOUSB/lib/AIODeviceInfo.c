@@ -12,7 +12,9 @@ AIODeviceInfo *NewAIODeviceInfo() {
     return tmp;
 }
 
-void DeleteAIODeviceInfo( AIODeviceInfo *di ) { 
+/*----------------------------------------------------------------------------*/
+void DeleteAIODeviceInfo( AIODeviceInfo *di ) 
+{ 
     if ( di ) {
         if (di->Name )
             free(di->Name);
@@ -20,6 +22,7 @@ void DeleteAIODeviceInfo( AIODeviceInfo *di ) {
     }
 }
 
+/*----------------------------------------------------------------------------*/
 const char *AIODeviceInfoGetName( AIODeviceInfo *di )
 {
     if ( di ) 
@@ -27,6 +30,7 @@ const char *AIODeviceInfoGetName( AIODeviceInfo *di )
     return NULL;
 }
 
+/*----------------------------------------------------------------------------*/
 AIORET_TYPE AIODeviceInfoGetCounters( AIODeviceInfo *di ) 
 {
     if ( di )
@@ -34,6 +38,7 @@ AIORET_TYPE AIODeviceInfoGetCounters( AIODeviceInfo *di )
     return -AIOUSB_ERROR_INVALID_PARAMETER;
 }
 
+/*----------------------------------------------------------------------------*/
 AIORET_TYPE AIODeviceInfoGetDIOBytes( AIODeviceInfo *di ) 
 {
     if ( di ) 
@@ -41,7 +46,8 @@ AIORET_TYPE AIODeviceInfoGetDIOBytes( AIODeviceInfo *di )
     return -AIOUSB_ERROR_INVALID_PARAMETER;
 }
 
-AIODeviceInfo *AIODeviceInfoRetrieve( unsigned long DeviceIndex )
+/*----------------------------------------------------------------------------*/
+AIODeviceInfo *AIODeviceInfoGet( unsigned long DeviceIndex )
 {
     AIORESULT result = AIOUSB_SUCCESS;
     if ( !AIOUSB_Lock() ) { 
@@ -62,7 +68,6 @@ AIODeviceInfo *AIODeviceInfoRetrieve( unsigned long DeviceIndex )
         return NULL;
     }
 
-    /* DeviceDescriptor *const deviceDesc = &deviceTable[ DeviceIndex ]; */
     AIOUSBDevice *deviceDesc = AIODeviceTableGetDeviceAtIndex( DeviceIndex, &result );
     if ( result != AIOUSB_SUCCESS ) {
         free(tmp);
@@ -106,7 +111,7 @@ TEST(AIODeviceInfo,Get_Defaults) {
     /* Mock object that looks like a DeviceTable */
     unsigned long products[] = {USB_AIO16_16A, USB_DIO_32};
     AIODeviceTablePopulateTableTest( products, 2 );
-    AIODeviceInfo *tmp = AIODeviceInfoRetrieve( 0 );
+    AIODeviceInfo *tmp = AIODeviceInfoGet( 0 );
 
     EXPECT_TRUE(tmp);
 
@@ -114,6 +119,13 @@ TEST(AIODeviceInfo,Get_Defaults) {
     EXPECT_STREQ(AIODeviceInfoGetName(tmp), "USB-AIO16-16A" );
     EXPECT_EQ(AIODeviceInfoGetCounters(tmp), 1 );
     EXPECT_EQ(AIODeviceInfoGetDIOBytes(tmp), 2 );
+
+    tmp =  AIODeviceInfoGet( 1 );
+    EXPECT_TRUE( tmp );
+    EXPECT_STREQ(AIODeviceInfoGetName(tmp), "USB-DIO-32" );
+    EXPECT_EQ(3, AIODeviceInfoGetCounters(tmp) );
+    EXPECT_EQ(4, AIODeviceInfoGetDIOBytes(tmp) );
+
     DeleteAIODeviceInfo( tmp );
 }
 
@@ -125,12 +137,19 @@ TEST( AIODeviceInfo, CheckDeviceConstants )
 {
     unsigned long products[] = {USB_AIO16_16A, USB_DIO_32};
     AIODeviceTablePopulateTableTest( products, 2 );
-    AIODeviceInfo *tmp = AIODeviceInfoRetrieve( diFirst  );
+    AIODeviceInfo *tmp = AIODeviceInfoGet( diFirst  );
     EXPECT_TRUE( tmp );
 
-    tmp = AIODeviceInfoRetrieve( diOnly );
+    tmp = AIODeviceInfoGet( diOnly );
+    EXPECT_FALSE( tmp );
+    
+    AIODeviceTableClearDevices();
+
+    tmp = AIODeviceInfoGet( diFirst  );
     EXPECT_FALSE( tmp );
 
+    tmp = AIODeviceInfoGet( diFirst  );
+    EXPECT_FALSE( tmp );
 }
 
 

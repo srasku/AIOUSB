@@ -842,7 +842,7 @@ void *ActualWorkFunction( void *object )
     int usbfail = 0;
     int usbfail_count = 5;
     unsigned char *data   = (unsigned char *)malloc( datasize );
-    DeviceDescriptor *deviceDesc = AIOUSB_GetDevice_Lock( AIOContinuousBufGetDeviceIndex(buf), &result);
+    AIOUSBDevice *deviceDesc = AIOUSB_GetDevice_Lock( AIOContinuousBufGetDeviceIndex(buf), &result);
     if(!deviceDesc || result != AIOUSB_SUCCESS) {
         retval = -result;
         goto out_ActualWorkFunction;
@@ -910,7 +910,7 @@ AIORET_TYPE SetConfig( AIOContinuousBuf *buf )
 {
     AIORET_TYPE retval = AIOUSB_SUCCESS;
     unsigned long result;
-    DeviceDescriptor *deviceDesc = AIOUSB_GetDevice_Lock( AIOContinuousBufGetDeviceIndex( buf ), &result );
+    AIOUSBDevice *deviceDesc = AIOUSB_GetDevice_Lock( AIOContinuousBufGetDeviceIndex( buf ), &result );
     if (!deviceDesc || result != AIOUSB_SUCCESS ) {
         retval = (AIORET_TYPE)result;
         goto out_SetConfig;
@@ -1085,7 +1085,7 @@ AIORET_TYPE AIOContinuousBufPreSetup( AIOContinuousBuf * buf )
     int usbval;
     unsigned long result;
     libusb_device_handle *deviceHandle;
-    DeviceDescriptor *deviceDesc = AIOUSB_GetDevice_Lock( AIOContinuousBufGetDeviceIndex(buf), &result);
+    AIOUSBDevice *deviceDesc = AIOUSB_GetDevice_Lock( AIOContinuousBufGetDeviceIndex(buf), &result);
     if(!deviceDesc || result != AIOUSB_SUCCESS)
         return -result;
 

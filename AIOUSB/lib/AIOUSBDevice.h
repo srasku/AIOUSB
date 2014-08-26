@@ -92,7 +92,7 @@ typedef struct aio_usb_driver {
     unsigned char *ADBuf;
     int ADBuf_size;
     AIOUSB_BOOL testing;
- 
+    AIOUSB_BOOL valid;
 } AIOUSBDevice;
 
 libusb_device_handle *AIOUSBDeviceGetUSBHandle( AIOUSBDevice *dev );

@@ -184,6 +184,7 @@ PUBLIC_EXTERN AIORET_TYPE AIOUSB_GetEndChannel( const ADCConfigBlock *config ) _
 PUBLIC_EXTERN AIORET_TYPE AIOUSB_GetOversample( const ADCConfigBlock *config ) __attribute__ ((deprecated("Please use ADCConfigBlockGetOversample")));
 PUBLIC_EXTERN AIORET_TYPE AIOUSB_SetOversample( ADCConfigBlock *config, unsigned overSample ) __attribute__ ((deprecated("Please use ADCConfigBlockSetOversample")));
 #endif
+PUBLIC_EXTERN AIOUSBDevice *AIOUSB_GetDevice_NoCheck( unsigned long DeviceIndex  );
 
 
 #ifdef __aiousb_cplusplus

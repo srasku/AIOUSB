@@ -5,6 +5,8 @@
 namespace AIOUSB {
 #endif
 
+AIOUSBDevice deviceTable[ MAX_USB_DEVICES ];
+
 
 static ProductIDName productIDNameTable[] = {
     { USB_DA12_8A_REV_A , "USB-DA12-8A-A"  },
@@ -138,8 +140,19 @@ AIOUSBDevice *_get_device( unsigned long index , AIORESULT *result )
     if ( !dev ) {
         *result = AIOUSB_ERROR_INVALID_DATA;
         return NULL;
-    }
+    } else 
+        *result = AIOUSB_SUCCESS;
     return dev;
+}
+
+AIOUSBDevice *_verified_device( AIOUSBDevice *dev, AIORESULT *result )
+{
+    if ( dev && dev->valid == AIOUSB_TRUE ) {
+        return dev;
+    } else { 
+        *result = AIOUSB_ERROR_INVALID_DEVICE_SETTING;
+        return NULL;
+    }   
 }
 
 AIOUSBDevice *_get_device_no_error( unsigned long index )
@@ -219,6 +232,8 @@ void AIODeviceTableInit(void)
         device->workerBusy = AIOUSB_FALSE;
         device->workerStatus = 0;
         device->workerResult = AIOUSB_SUCCESS;
+        device->valid = AIOUSB_FALSE;
+        device->testing = AIOUSB_FALSE;
     }
     AIOUSB_SetInit();
 }
@@ -1001,18 +1016,16 @@ RETURN_AIOUSB_EnsureOpen:
     return result;
 }
 
-
-
 /*----------------------------------------------------------------------------*/ 
 AIOUSBDevice *AIODeviceTableGetDeviceAtIndex( unsigned long DeviceIndex , AIORESULT *result ) 
 {
-    AIOUSBDevice *retval;
+    AIOUSBDevice *retval = NULL;
 
     if (DeviceIndex == diFirst) { /* find first device on bus */
         *result = AIOUSB_ERROR_FILE_NOT_FOUND;
         int index;
         for(index = 0; index < MAX_USB_DEVICES; index++) {
-            if ( _get_device(index , result ) ) {
+            if ( (retval = _verified_device(_get_device(index , result ), result )) && *result == AIOUSB_SUCCESS ) {
                 DeviceIndex = index;
                 break;
             }
@@ -1024,7 +1037,7 @@ AIOUSBDevice *AIODeviceTableGetDeviceAtIndex( unsigned long DeviceIndex , AIORES
         *result = AIOUSB_ERROR_FILE_NOT_FOUND;
         int index;
         for(index = 0; index < MAX_USB_DEVICES; index++) {
-            if ( _get_device(index, result )) {
+            if ( (retval = _verified_device(_get_device(index, result ), result )) ) {
                 /* found a device */
                 if ( *result != AIOUSB_SUCCESS) {
                     /*
@@ -1047,7 +1060,7 @@ AIOUSBDevice *AIODeviceTableGetDeviceAtIndex( unsigned long DeviceIndex , AIORES
         /*
          * simply verify that the supplied index is valid
          */
-        retval = _get_device( DeviceIndex , result );
+        retval = _verified_device( _get_device( DeviceIndex , result ), result );
     }
 
     return retval;
@@ -1255,6 +1268,7 @@ AIORESULT AIODeviceTableAddDeviceToDeviceTableWithUSBDevice( int *numAccesDevice
     device->deviceHandle  = NULL;
     device->ProductID     = productID;
     device->isInit        = AIOUSB_TRUE;
+    device->valid         = AIOUSB_TRUE;
     ADCConfigBlockSetDevice( AIOUSBDeviceGetADCConfigBlock( device ), device );
     _setup_device_parameters( device , productID );
     *numAccesDevices += 1;
@@ -1312,7 +1326,7 @@ void AIODeviceTablePopulateTableTest(unsigned long *products, int length )
     for( int i = 0; i < length ; i ++  ) {
         result = AIODeviceTableAddDeviceToDeviceTable( &numAccesDevices, products[i] );
         if ( result != AIOUSB_SUCCESS ) {
-            deviceTable[numAccesDevices-1].device = (libusb_device *)0x42;
+            deviceTable[numAccesDevices-1].device = (libusb_device *)0x42; 
         }
     }
 }
@@ -1352,7 +1366,6 @@ unsigned long AIODeviceTableClearDevices(void)
 {
     CloseAllDevices();
     AIODeviceTableInit();
-    AIODeviceTablePopulateTable();
     return AIOUSB_SUCCESS;
 }
 

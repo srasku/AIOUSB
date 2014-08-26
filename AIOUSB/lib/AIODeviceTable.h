@@ -14,6 +14,8 @@ namespace AIOUSB
 {
 #endif
 
+PUBLIC_EXTERN AIOUSBDevice deviceTable[ MAX_USB_DEVICES ];
+
 PUBLIC_EXTERN AIORESULT AIODeviceTableAddDeviceToDeviceTable( int *numAccesDevices, unsigned long productID ) ;
 PUBLIC_EXTERN AIORESULT AIODeviceTableAddDeviceToDeviceTableWithUSBDevice( int *numAccesDevices, unsigned long productID ,libusb_device *usb_dev );
 PUBLIC_EXTERN void AIODeviceTablePopulateTable(void);

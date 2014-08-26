@@ -151,7 +151,7 @@ PUBLIC_EXTERN AIORET_TYPE AIOUSB_GetDeviceSerialNumber( unsigned long DeviceInde
 
 
 #ifndef SWIG
-PUBLIC_EXTERN DeviceDescriptor deviceTable[ MAX_USB_DEVICES ];
+
 PUBLIC_EXTERN AIOUSB_BOOL AIOUSB_Lock(void);
 PUBLIC_EXTERN AIOUSB_BOOL AIOUSB_UnLock(void);
 
@@ -159,8 +159,8 @@ PUBLIC_EXTERN AIOUSB_BOOL AIOUSB_UnLock(void);
 PUBLIC_EXTERN unsigned long AIOUSB_InitTest(void);
 PUBLIC_EXTERN unsigned long AIOUSB_Validate_Lock(  unsigned long *DeviceIndex ) ;
 
-PUBLIC_EXTERN DeviceDescriptor *DeviceTableAtIndex_Lock( unsigned long DeviceIndex );
-PUBLIC_EXTERN DeviceDescriptor *AIOUSB_GetDevice_Lock( unsigned long DeviceIndex , unsigned long *result );
+PUBLIC_EXTERN AIOUSBDevice *DeviceTableAtIndex_Lock( unsigned long DeviceIndex );
+PUBLIC_EXTERN AIOUSBDevice *AIOUSB_GetDevice_Lock( unsigned long DeviceIndex , unsigned long *result );
 
 PUBLIC_EXTERN unsigned long AIOUSB_EnsureOpen( unsigned long DeviceIndex );
 PUBLIC_EXTERN unsigned long AIOUSB_ClearFIFO( unsigned long DeviceIndex, FIFO_Method Method );
@@ -168,7 +168,7 @@ PUBLIC_EXTERN unsigned long AIOUSB_ClearFIFO( unsigned long DeviceIndex, FIFO_Me
 PUBLIC_EXTERN unsigned int ProductNameToID( const char *name );
 
 PUBLIC_EXTERN struct libusb_device_handle *AIOUSB_GetDeviceHandle( unsigned long DeviceIndex );
-PUBLIC_EXTERN struct libusb_device_handle *AIOUSB_GetUSBHandle(DeviceDescriptor *deviceDesc );
+PUBLIC_EXTERN struct libusb_device_handle *AIOUSB_GetUSBHandle(AIOUSBDevice *deviceDesc );
 
 PUBLIC_EXTERN const char *AIOUSB_GetVersion(void);
 PUBLIC_EXTERN const char *AIOUSB_GetVersionDate(void);
@@ -199,7 +199,7 @@ PUBLIC_EXTERN int AIOUSB_BulkTransfer( struct libusb_device_handle *dev_handle,
 
 PUBLIC_EXTERN unsigned ADC_GetOversample_Cached( ADCConfigBlock *config );
 PUBLIC_EXTERN unsigned ADC_GainCode_Cached( ADCConfigBlock *config, unsigned channel);
-PUBLIC_EXTERN DeviceDescriptor *AIOUSB_GetDevice_NoCheck( unsigned long DeviceIndex  );
+
 PUBLIC_EXTERN AIORET_TYPE cull_and_average_counts( unsigned long DeviceIndex, 
                                                    unsigned short *counts,
                                                    unsigned *size ,
