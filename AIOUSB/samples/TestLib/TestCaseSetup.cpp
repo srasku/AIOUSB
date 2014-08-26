@@ -4,6 +4,7 @@
 #include <aiousb.h>
 #include <AIOUSB_Core.h>
 #include "AIOTypes.h"
+#include "AIODeviceTable.h"
 
 using namespace AIOUSB;
 
@@ -175,23 +176,34 @@ void
 TestCaseSetup::doFastITScanSetup()
 {
 
-  DeviceDescriptor *const deviceDesc = &deviceTable[ DeviceIndex ];
-  unsigned long result;
+    AIORESULT result = AIOUSB_SUCCESS;
+    AIOUSBDevice *deviceDesc  = AIODeviceTableGetDeviceAtIndex( DeviceIndex, &result );
 
-  result = ADC_SetCal( DeviceIndex, ":AUTO:");
-  CHECK_RESULT( result );
+    // DeviceDescriptor *const deviceDesc = &deviceTable[ DeviceIndex ];
+    if ( result != AIOUSB_SUCCESS ) {
+        printf("Can't find device at index %d\n", (int)DeviceIndex );
+        return;
+    }
+    ADCConfigBlock *config = AIOUSBDeviceGetADCConfigBlock( deviceDesc );
 
-  result = ADC_GetConfig( DeviceIndex, ADC_GetADConfigBlock_Registers( &deviceDesc->cachedConfigBlock ), &deviceDesc->ConfigBytes );
-  CHECK_RESULT( result );
 
-  for( int i = 0 ; i <= 15 ; i ++ ) 
-    AIOUSB_SetRegister( &deviceDesc->cachedConfigBlock, i , 0x00 );
+    result = ADC_SetCal( DeviceIndex, ":AUTO:");
+    CHECK_RESULT( result );
 
-  AIOUSB_SetRegister( &deviceDesc->cachedConfigBlock, 0x13 , 0x07 );
+  // result = ADC_GetConfig( DeviceIndex, ADC_GetADConfigBlock_Registers( &deviceDesc->cachedConfigBlock ), &deviceDesc->ConfigBytes );
+    result = ADC_GetConfig( DeviceIndex,  ADCConfigBlockGetRegisters( config ), &deviceDesc->ConfigBytes );
+
+    CHECK_RESULT( result );
+
+    for( int i = 0 ; i <= 15 ; i ++ ) 
+        ADCConfigBlockSetRegister( config, i, 0x00 );
+
+    ADCConfigBlockSetRegister( config, 0x13, 0x07 );
+    // AIOUSB_SetRegister( &deviceDesc->cachedConfigBlock, i , 0x00 );
+    // AIOUSB_SetRegister( &deviceDesc->cachedConfigBlock, 0x13 , 0x07 );
   
-
-  result = ADC_SetConfig( DeviceIndex, &deviceDesc->cachedConfigBlock.registers[0] , &deviceDesc->ConfigBytes );
-  CHECK_RESULT( result );
+    result = ADC_SetConfig( DeviceIndex, ADCConfigBlockGetRegisters( config )  , &deviceDesc->ConfigBytes );
+    CHECK_RESULT( result );
 }
 
 void
@@ -223,19 +235,29 @@ TestCaseSetup::doFastITScan( int numgets )
  
 }
 
-
-/** 
+/**
  * @desc Uploads a bulk configuration block
  * 
  */
 void TestCaseSetup::doBulkConfigBlock()
 {
-    AIOUSB_InitConfigBlock( &configBlock, DeviceIndex, AIOUSB_FALSE );
-    AIOUSB_SetAllGainCodeAndDiffMode( &configBlock, AD_GAIN_CODE_10V, AIOUSB_FALSE );
-    AIOUSB_SetCalMode( &configBlock, AD_CAL_MODE_NORMAL );
-    AIOUSB_SetTriggerMode( &configBlock, 0 );
-    AIOUSB_SetScanRange( &configBlock, 2, 13 );
-    AIOUSB_SetOversample( &configBlock, 0 );
+    ADCConfigBlock *config = AIOUSBDeviceGetADCConfigBlock( AIODeviceTableGetDeviceAtIndex( DeviceIndex, NULL ));
+
+    ADCConfigBlockInitialize( config );
+    ADCConfigBlockSetAllGainCodeAndDiffMode( config, AD_GAIN_CODE_10V, AIOUSB_FALSE );
+    ADCConfigBlockSetCalMode( config, AD_CAL_MODE_NORMAL );
+    ADCConfigBlockSetTriggerMode( config, 0 );
+    ADCConfigBlockSetScanRange( config, 2, 13 );
+    ADCConfigBlockSetOversample( config, 0 );
+
+    // AIOUSB_InitConfigBlock( &configBlock, DeviceIndex, AIOUSB_FALSE );
+    // AIOUSB_SetAllGainCodeAndDiffMode( &configBlock, AD_GAIN_CODE_10V, AIOUSB_FALSE );
+    // AIOUSB_SetCalMode( &configBlock, AD_CAL_MODE_NORMAL );
+    // AIOUSB_SetTriggerMode( &configBlock, 0 );
+    // AIOUSB_SetScanRange( &configBlock, 2, 13 );
+    // AIOUSB_SetOversample( &configBlock, 0 );
+
+
     int result = ADC_SetConfig( DeviceIndex, configBlock.registers, &configBlock.size );
     if( result != AIOUSB_SUCCESS  ) {
         std::stringstream er;
@@ -413,15 +435,22 @@ unsigned long TestCaseSetup::TEST_ADC_BulkPoll( unsigned long DeviceIndex,
   if( ! AIOUSB::AIOUSB_Lock() )
     return AIOUSB::AIOUSB_ERROR_INVALID_MUTEX;
 
-  unsigned long result;
-  result = AIOUSB::AIOUSB_Validate( &DeviceIndex );
-  if( result != AIOUSB::AIOUSB_SUCCESS ) {
-    ERROR("Time out occured here");
-    AIOUSB::AIOUSB_UnLock();
-    return result;
-  }
+    AIORESULT result = AIOUSB_SUCCESS;
+    AIOUSBDevice *deviceDesc = AIODeviceTableGetDeviceAtIndex( DeviceIndex, &result );
+    if ( result != AIOUSB::AIOUSB_SUCCESS ){
+        AIOUSB::AIOUSB_UnLock();
+        return result;
+    }
+  // unsigned long result;
+  // result = AIOUSB::AIOUSB_Validate( &DeviceIndex );
+  // if( result != AIOUSB::AIOUSB_SUCCESS ) {
+  //   ERROR("Time out occured here");
+  //   AIOUSB::AIOUSB_UnLock();
+  //   return result;
+  // }
+  // DeviceDescriptor *const deviceDesc = &deviceTable[ DeviceIndex ];
 
-  DeviceDescriptor *const deviceDesc = &deviceTable[ DeviceIndex ];
+
   if( deviceDesc->bADCStream == AIOUSB::AIOUSB_FALSE ) {
     AIOUSB::AIOUSB_UnLock();
     return AIOUSB::AIOUSB_ERROR_NOT_SUPPORTED;
@@ -556,7 +585,7 @@ void TestCaseSetup::doDemonstrateReadVoltages()
   LOG("Running test inside of the doDemonstrateReadVoltage\n");
   int result;
   for( int channel = 0; channel < NUM_CHANNELS; channel++ )
-    gainCodes[ channel ] = AD_GAIN_CODE_0_10V;
+      gainCodes[ channel ] = AD_GAIN_CODE_0_10V;
   
   ADC_RangeAll( DeviceIndex, gainCodes, AIOUSB_TRUE );
   ADC_SetOversample( DeviceIndex, 10 );

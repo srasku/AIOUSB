@@ -138,9 +138,10 @@ AIOUSBDevice *_get_device( unsigned long index , AIORESULT *result )
     }
     dev = (AIOUSBDevice*)&deviceTable[index];
     if ( !dev ) {
-        *result = AIOUSB_ERROR_INVALID_DATA;
+        if ( result )
+            *result = AIOUSB_ERROR_INVALID_DATA;
         return NULL;
-    } else 
+    } else if ( result ) 
         *result = AIOUSB_SUCCESS;
     return dev;
 }
