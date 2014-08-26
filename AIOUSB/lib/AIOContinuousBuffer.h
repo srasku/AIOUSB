@@ -1,5 +1,5 @@
 /**
- * @file   AIOTypes.h
+ * @file   AIOContinuousBuffer.h
  * @author $Format: %an <%ae>$
  * @date   $Format: %ad$
  * @version $Format: %t$
@@ -96,6 +96,7 @@ PUBLIC_EXTERN AIORET_TYPE AIOContinuousBufNumberWriteScansInCounts(AIOContinuous
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBufSetOverSample( AIOContinuousBuf *buf, unsigned os );
 
 /*-----------------------------  Deprecated / Refactored   -------------------------------*/
+#ifndef SWIG
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBuf_InitConfiguration(  AIOContinuousBuf *buf ) __attribute__ ((deprecated("Please use AIOContinuousBufInitConfiguration")));
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBuf_SetCallback(AIOContinuousBuf *buf , void *(*work)(void *object ) ) __attribute__ ((deprecated("Please use AIOContinuousBufSetCallback")));;
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBuf_SetTesting( AIOContinuousBuf *buf, AIOUSB_BOOL testing ) __attribute__ ((deprecated("Please use AIOContinuousBufSetTesting")));
@@ -113,7 +114,7 @@ PUBLIC_EXTERN AIORET_TYPE AIOContinuousBuf_SaveConfig( AIOContinuousBuf *buf ) _
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBuf_SetChannelMask( AIOContinuousBuf *buf, AIOChannelMask *mask ) __attribute__((deprecated("Please use AIOContinuousBufSetChannelMask")));
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBuf_SetDeviceIndex( AIOContinuousBuf *buf , unsigned long DeviceIndex ) __attribute__((deprecated("Please use AIOContinuousBufSetDeviceIndex")));
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBuf_NumberWriteScansInCounts(AIOContinuousBuf *buf ) __attribute__((deprecated("Please use AIOContinuousBufNumberWriteScansInCounts")));
-
+#endif
 /*---------------------------  Done Deprecated  -----------------------------*/
 
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBufLock( AIOContinuousBuf *buf );

@@ -95,7 +95,6 @@ typedef struct aio_usb_driver {
  
 } AIOUSBDevice;
 
-AIOUSBDevice *GetAIOUSBDeviceAtDeviceIndex( unsigned long DeviceIndex , AIORESULT *result );
 libusb_device_handle *AIOUSBDeviceGetUSBHandle( AIOUSBDevice *dev );
 libusb_device_handle *AIOUSBDeviceGetUSBHandleFromDeviceIndex( unsigned long DeviceIndex, AIOUSBDevice **dev, AIORESULT *result );
 

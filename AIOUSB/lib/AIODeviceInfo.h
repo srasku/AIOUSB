@@ -25,7 +25,7 @@ PUBLIC_EXTERN void DeleteAIODeviceInfo( AIODeviceInfo *di );
 PUBLIC_EXTERN const char *AIODeviceInfoGetName( AIODeviceInfo *di );
 PUBLIC_EXTERN AIORET_TYPE AIODeviceInfoGetCounters( AIODeviceInfo *di ); 
 PUBLIC_EXTERN AIORET_TYPE AIODeviceInfoGetDIOBytes( AIODeviceInfo *di );
-PUBLIC_EXTERN AIODeviceInfo *GetDeviceInfo( unsigned long DeviceIndex );
+/* PUBLIC_EXTERN AIODeviceInfo *GetDeviceInfo( unsigned long DeviceIndex ); */
 
 
 #ifdef __aiousb_cplusplus

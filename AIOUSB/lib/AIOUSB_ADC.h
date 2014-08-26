@@ -166,6 +166,7 @@ PUBLIC_EXTERN unsigned long AIOUSB_ADC_ExternalCal(unsigned long DeviceIndex,con
  * ADC_SetConfig( DeviceIndex, configBlock.registers, &configBlock.size );	 //send configuration block to device
  */
 
+#ifndef SWIG
 PUBLIC_EXTERN void AIOUSB_SetAllGainCodeAndDiffMode( ADCConfigBlock *config, unsigned gainCode, AIOUSB_BOOL differentialMode )  __attribute__ ((deprecated("Please use ADCConfigBlockSetAllGainCodeAndDiffMode")));
 PUBLIC_EXTERN unsigned AIOUSB_GetGainCode( const ADCConfigBlock *config, unsigned channel )  __attribute__ ((deprecated("Please use ADCConfigBlockGetGainCode")));
 PUBLIC_EXTERN void AIOUSB_SetGainCode( ADCConfigBlock *config, unsigned channel, unsigned gainCode )  __attribute__ ((deprecated("Please use ADCConfigBlockSetGainCode")));
@@ -182,7 +183,7 @@ PUBLIC_EXTERN AIORET_TYPE AIOUSB_GetStartChannel( const ADCConfigBlock *config )
 PUBLIC_EXTERN AIORET_TYPE AIOUSB_GetEndChannel( const ADCConfigBlock *config ) __attribute__ ((deprecated("Please use ADCConfigBlockGetEndChannel")));
 PUBLIC_EXTERN AIORET_TYPE AIOUSB_GetOversample( const ADCConfigBlock *config ) __attribute__ ((deprecated("Please use ADCConfigBlockGetOversample")));
 PUBLIC_EXTERN AIORET_TYPE AIOUSB_SetOversample( ADCConfigBlock *config, unsigned overSample ) __attribute__ ((deprecated("Please use ADCConfigBlockSetOversample")));
-
+#endif
 
 
 #ifdef __aiousb_cplusplus
