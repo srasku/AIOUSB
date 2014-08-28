@@ -58,12 +58,12 @@ CPPDBGLIB 	:= $(LIBPREFIX)aiousbcppdbg.$(STATICSUFFIX)
 
 
 ifdef DEBUG
-        DEBUGOPTS       += -ggdb $(DEBUG)
+        DEBUGOPTS       += $(DEBUG)
 else
         DEBUGOPTS       := -DNDEBUG
 endif
 
-DEBUG_FLAGS	:= -ggdb 
+DEBUG_FLAGS	:= -g
 
 
 LIBS 		:= $(CLIB) $(CDBGLIB) $(CPPLIB) $(CPPDBGLIB)  $(SHCLIB) $(SHCDBGLIB) $(SHCPPLIB) $(SHCPPDBGLIB)
@@ -125,11 +125,11 @@ else
 $(SHCLIB) : $(COBJS)
 	$(CC)  $(LDFLAGS) $(CC_SHFLAGS),$@ -o $@ $(COBJS) $(SHARED_LIBS)
 $(SHCDBGLIB): 	$(CDBGOBJS)
-	$(CC)  $(LDFLAGS) $(CC_SHFLAGS),$@ -o $@ $(CDBGOBJS) $(SHARED_LIBS) 
+	$(CC)  -g $(LDFLAGS) $(CC_SHFLAGS),$@ -o $@ $(CDBGOBJS) $(SHARED_LIBS) 
 $(SHCPPLIB) : $(CPPOBJS)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CC_SHFLAGS),$@ -o $@ $(CPPOBJS) $(SHARED_LIBS)
 $(SHCPPDBGLIB) : $(CPPDBGOBJS)
-	$(CXX) $(CXXFLAGS),$@  $(LDFLAGS) $(CC_SHFLAGS),$@ -o $@ $(CPPDBGOBJS) $(SHARED_LIBS)
+	$(CXX) -g $(CXXFLAGS) $(LDFLAGS) $(CC_SHFLAGS),$@ -o $@ $(CPPDBGOBJS) $(SHARED_LIBS)
 endif
 
 

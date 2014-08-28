@@ -262,57 +262,6 @@ AIOUSB_BOOL AIOUSB_UnLock()
 #endif
 }
 
-/**
- * @details This function is intended to improve upon
- * libusb_bulk_transfer() by receiving or transmitting packets until
- * the entire transfer request has been satisfied; it intentionally
- * restarts the timeout each time a packet is received, so the timeout
- * parameter specifies the longest permitted delay between packets,
- * not the total time to complete the transfer request
- */
-PRIVATE int AIOUSB_BulkTransfer(
-                                struct libusb_device_handle *dev_handle,
-                                unsigned char endpoint,
-                                unsigned char *data,
-                                int length,
-                                int *transferred,
-                                unsigned int timeout
-                                ) 
-{
-    assert(dev_handle != 0 &&
-           data != 0 &&
-           transferred != 0);
-    int libusbResult = LIBUSB_SUCCESS;
-    int total = 0;
-    while(length > 0) {
-          int bytes;
-          libusbResult = libusb_bulk_transfer(dev_handle, endpoint, data, length, &bytes, timeout);
-          if(libusbResult == LIBUSB_SUCCESS) {
-                if(bytes > 0) {
-                      total += bytes;
-                      data += bytes;
-                      length -= bytes;
-                  }
-            } else if(libusbResult == LIBUSB_ERROR_TIMEOUT) {
-            /**
-             * @note
-             * even if we get a timeout, some data may have been transferred; if so, then
-             * this timeout is not an error; if we get a timeout and no data was transferred,
-             * then treat it as an error condition
-             */
-                if(bytes > 0) {
-                      total += bytes;
-                      data += bytes;
-                      length -= bytes;
-                  } else
-                    break;              // from while() and return timeout result
-            } else
-              break;            // from while() and return error result
-      }
-    *transferred = total;
-    return libusbResult;
-}
-
 /*------------------------------------------------------------------------*/
 /**
  * @todo Replace AIOUSB_Lock() with thread safe lock on a per device index basis

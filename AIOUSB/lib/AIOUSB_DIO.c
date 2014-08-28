@@ -73,7 +73,7 @@ USBDevice *_check_dio_get_device_handle( unsigned long DeviceIndex,
         return deviceHandle;
     }
 
-    return AIODeviceTableGetUSBDevice( DeviceIndex , result );
+    return AIODeviceTableGetUSBDeviceAtIndex( DeviceIndex , result );
 }
 
 /*----------------------------------------------------------------------------*/

@@ -258,6 +258,14 @@ int usb_control_transfer(struct aiousb_device *dev_handle,
 }
 
 /*----------------------------------------------------------------------------*/
+/**
+ * @details This function is intended to improve upon
+ * libusb_bulk_transfer() by receiving or transmitting packets until
+ * the entire transfer request has been satisfied; it intentionally
+ * restarts the timeout each time a packet is received, so the timeout
+ * parameter specifies the longest permitted delay between packets,
+ * not the total time to complete the transfer request
+ */
 int usb_bulk_transfer( USBDevice *dev_handle,
                       unsigned char endpoint, 
                       unsigned char *data, 
