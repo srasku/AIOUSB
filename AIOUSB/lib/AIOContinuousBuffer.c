@@ -1173,20 +1173,20 @@ AIORET_TYPE AIOContinuousBufPreSetup( AIOContinuousBuf * buf )
 }
 
 /*----------------------------------------------------------------------------*/
-int continuous_setup( libusb_device_handle *deviceHandle , unsigned char *data, unsigned length )
+int continuous_setup( USBDevice *usb , unsigned char *data, unsigned length )
 {
     unsigned bmRequestType, wValue = 0x0, wIndex = 0x0, bRequest = 0xba, wLength = 0x01;
     unsigned tmp[] = {0xC0, 0xBA, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00};
     memcpy(data,tmp, 8);
-    int usbval = libusb_control_transfer( deviceHandle,
-                                          0xC0,
-                                          bRequest,
-                                          wValue,
-                                          wIndex,
-                                          &data[0],
-                                          wLength,
-                                          1000
-                                          );
+    int usbval = usb->usb_control_transfer( usb,
+                                            0xC0,
+                                            bRequest,
+                                            wValue,
+                                            wIndex,
+                                            &data[0],
+                                            wLength,
+                                            1000
+                                            );
     wValue = 0;
     wIndex = 0;
     wLength = 0x14;
@@ -1201,26 +1201,26 @@ int continuous_setup( libusb_device_handle *deviceHandle , unsigned char *data, 
     wValue = 0x7400;
     wIndex =0;
     wLength = 0;
-    libusb_control_transfer( deviceHandle,
-                             bmRequestType,
-                             bRequest,
-                             wValue,
-                             wIndex,
-                             &data[0],
-                             wLength,
-                             1000
-                             );
+    usb->usb_control_transfer( usb,
+                               bmRequestType,
+                               bRequest,
+                               wValue,
+                               wIndex,
+                               &data[0],
+                               wLength,
+                               1000
+                               );
     /* 40 21 00 B6 00 00 00 00 */
     wValue = 0xB600;
-    libusb_control_transfer( deviceHandle,
-                             bmRequestType,
-                             bRequest,
-                             wValue,
-                             wIndex,
-                             &data[0],
-                             wLength,
-                             1000
-                             );
+    usb->usb_control_transfer( usb,
+                               bmRequestType,
+                               bRequest,
+                               wValue,
+                               wIndex,
+                               &data[0],
+                               wLength,
+                               1000
+                               );
     /*Config */
 
 
@@ -1228,30 +1228,30 @@ int continuous_setup( libusb_device_handle *deviceHandle , unsigned char *data, 
     wValue = 0x7400;
     bRequest = 0x23;
     wIndex = 0x64;
-    libusb_control_transfer( deviceHandle,
-                             bmRequestType,
-                             bRequest,
-                             wValue,
-                             wIndex,
-                             &data[0],
-                             wLength,
-                             1000
-                             );
+    usb->usb_control_transfer( usb,
+                               bmRequestType,
+                               bRequest,
+                               wValue,
+                               wIndex,
+                               &data[0],
+                               wLength,
+                               1000
+                               );
 
 
     /* 40 23 00 B6 64 00 00 00 */
     wValue = 0xb600;
     bRequest = 0x23;
     wIndex = 0x64;
-    libusb_control_transfer( deviceHandle,
-                             bmRequestType,
-                             bRequest,
-                             wValue,
-                             wIndex,
-                             &data[0],
-                             wLength,
-                             1000
-                             );
+    usb->usb_control_transfer( usb,
+                               bmRequestType,
+                               bRequest,
+                               wValue,
+                               wIndex,
+                               &data[0],
+                               wLength,
+                               1000
+                               );
 
 
 
@@ -1264,15 +1264,15 @@ int continuous_setup( libusb_device_handle *deviceHandle , unsigned char *data, 
     wIndex = 0x0;
     wLength = 4;
     bRequest = 0xBC;
-    libusb_control_transfer( deviceHandle,
-                             bmRequestType,
-                             bRequest,
-                             wValue,
-                             wIndex,
-                             &data[0],
-                             wLength,
-                             1000
-                             );
+    usb->usb_control_transfer( usb,
+                               bmRequestType,
+                               bRequest,
+                               wValue,
+                               wIndex,
+                               &data[0],
+                               wLength,
+                               1000
+                               );
     return usbval;
 }
 
@@ -2218,15 +2218,15 @@ void bulk_transfer_test( int bufsize )
     }
     AIOContinuousBufSetClock( buf, 1000 );
 
-    usbval = libusb_control_transfer( deviceHandle, 
-                                      USB_WRITE_TO_DEVICE,
-                                      AUR_CTR_MODE,
-                                      wValue,
-                                      wIndex,
-                                      data,
-                                      wLength,
-                                      timeout
-                                      );
+    usbval = usb->usb_control_transfer( usb,
+                                        USB_WRITE_TO_DEVICE,
+                                        AUR_CTR_MODE,
+                                        wValue,
+                                        wIndex,
+                                        data,
+                                        wLength,
+                                        timeout
+                                        );
     if( usbval != AIOUSB_SUCCESS ) {
         AIOUSB_ERROR("ERROR: can't set counters\n");
         _exit(1);
@@ -2234,15 +2234,15 @@ void bulk_transfer_test( int bufsize )
     wValue = 0xb600;
 
     /* Read c0 bc 00 00 00 00 04 00 */ 
-    usbval = libusb_control_transfer( deviceHandle,
-                                      USB_WRITE_TO_DEVICE,
-                                      AUR_CTR_MODE,
-                                      wValue,
-                                      wIndex,
-                                      data,
-                                      wLength,
-                                      timeout
-                                      );
+    usbval = usb->usb_control_transfer( usb,
+                                        USB_WRITE_TO_DEVICE,
+                                        AUR_CTR_MODE,
+                                        wValue,
+                                        wIndex,
+                                        data,
+                                        wLength,
+                                        timeout
+                                        );
     if( usbval != AIOUSB_SUCCESS ) {
         AIOUSB_ERROR("ERROR: can't set counters\n");
         _exit(1);
@@ -2250,15 +2250,15 @@ void bulk_transfer_test( int bufsize )
     wValue = 100;
     wIndex = 100;
 
-    usbval = libusb_control_transfer(deviceHandle, 
-                                     USB_WRITE_TO_DEVICE, 
-                                     0xC5,
-                                     wValue,
-                                     wIndex,
-                                     data,
-                                     wLength,
-                                     timeout
-                                     );
+    usbval = usb->usb_control_transfer(usb,
+                                       USB_WRITE_TO_DEVICE, 
+                                       0xC5,
+                                       wValue,
+                                       wIndex,
+                                       data,
+                                       wLength,
+                                       timeout
+                                       );
     if( usbval != AIOUSB_SUCCESS ) {
         AIOUSB_ERROR("ERROR: can't set divisors: %d\n",usbval);
         _exit(1);

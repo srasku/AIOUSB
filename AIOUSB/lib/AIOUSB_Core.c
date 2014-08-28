@@ -166,9 +166,6 @@ const int NUM_PROD_NAMES = sizeof(productIDNameTable) / sizeof(productIDNameTabl
 static pthread_mutex_t aiousbMutex;
 #endif
 
-/* unsigned long AIOUSB_INIT_PATTERN = 0x9b6773adul;       // random pattern */
-/* unsigned long aiousbInit = 0;                   // == AIOUSB_INIT_PATTERN if AIOUSB module is initialized */
-
 static const char VERSION_NUMBER[] = "$Format: %t$";
 static const char VERSION_DATE[] = "$Format: %ad$";
 
@@ -874,28 +871,22 @@ unsigned long GenericVendorWrite(
                                  void *bufData,
                                  unsigned long *bytes_written
                                  ) {
-    /* unsigned long result; */
-    /* AIOUSBDevice *deviceDesc = AIOUSB_GetDevice_Lock( deviceIndex, &result ); */
-    AIORESULT result ;
-    AIOUSBDevice *deviceDesc = AIODeviceTableGetDeviceAtIndex( deviceIndex , &result );
-    if ( result != AIOUSB_SUCCESS )
-        return result;
-
-    libusb_device_handle *deviceHandle;
+    AIORESULT result = AIOUSB_SUCCESS;
     int bytesTransferred;
-
-    if ( !deviceDesc || result != AIOUSB_SUCCESS )
+    AIOUSBDevice *deviceDesc = AIODeviceTableGetDeviceAtIndex( deviceIndex , &result );
+    USBDevice *usb;
+    if ( result != AIOUSB_SUCCESS )
         goto out_GenericVendorWrite;
 
-    deviceHandle = AIOUSB_GetDeviceHandle(deviceIndex);
-
-    if (!deviceHandle)  {
-        result = AIOUSB_ERROR_DEVICE_NOT_CONNECTED;
+    usb = AIOUSBDeviceGetUSBHandle( deviceDesc );
+    if (!usb ) {
+        result = AIOUSB_ERROR_USBDEVICE_NOT_FOUND;
         goto out_GenericVendorWrite;
     }
+        
 
-    AIOUSB_UnLock();  /*  unlock while communicating with device */
-    bytesTransferred = libusb_control_transfer(deviceHandle,
+    AIOUSB_UnLock();
+    bytesTransferred = usb->usb_control_transfer(usb,
                                                USB_WRITE_TO_DEVICE,
                                                Request,
                                                Value,
