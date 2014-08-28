@@ -52,12 +52,20 @@ AIORET_TYPE ADCConfigBlockSetDevice( ADCConfigBlock *obj, AIOUSBDevice *dev )
 }
 
 /*----------------------------------------------------------------------------*/
-AIORET_TYPE ADCConfigBlockInitialize( ADCConfigBlock *obj ) 
+AIORET_TYPE ADCConfigBlockInitialize( ADCConfigBlock *config , AIOUSBDevice *dev) 
 {
-    obj->size = AD_CONFIG_REGISTERS;
-    memset(obj->registers,0, AD_CONFIG_REGISTERS );
-    obj->testing = AIOUSB_FALSE;
-    obj->timeout = 1000;
+    assert(config);
+    assert(dev);
+    if ( !config )
+        return -AIOUSB_ERROR_INVALID_ADCCONFIG;
+    if ( !dev ) 
+        return -AIOUSB_ERROR_INVALID_DEVICE;
+
+    config->device   = dev;
+    config->size     = AD_CONFIG_REGISTERS;
+    config->testing  = AIOUSB_FALSE;
+    config->timeout  = 1000;
+    memset(config->registers,0, AD_CONFIG_REGISTERS );
     return AIOUSB_SUCCESS;
 }
 
@@ -435,8 +443,9 @@ using namespace AIOUSB;
 TEST(ADCConfigBlock,CopyConfigs ) 
 {
     ADCConfigBlock from,to;
-    ADCConfigBlockInitialize( &from );
-    ADCConfigBlockInitialize( &to );
+    AIOUSBDevice dev;
+    ADCConfigBlockInitialize( &from , &dev);
+    ADCConfigBlockInitialize( &to , &dev );
    
     /* verify copying the test state */
     from.testing = AIOUSB_TRUE;
@@ -456,7 +465,7 @@ TEST( ADCConfigBlock, CanSetDevice )
     ADCConfigBlock tmp;
     AIOUSBDevice device;
 
-    ADCConfigBlockInitialize( &tmp );
+    ADCConfigBlockInitialize( &tmp , &device );
     ADCConfigBlockSetTesting( &tmp, AIOUSB_TRUE );
     ADCConfigBlockSetDevice( &tmp, &device   ) ;
 

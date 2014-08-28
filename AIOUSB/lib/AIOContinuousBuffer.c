@@ -218,19 +218,24 @@ AIORET_TYPE AIOContinuousBuf_SendPreConfig( AIOContinuousBuf *buf ) {
 AIORET_TYPE AIOContinuousBufSendPreConfig( AIOContinuousBuf *buf )
 {
     AIORET_TYPE retval = AIOUSB_SUCCESS;
+    AIORESULT result = AIOUSB_SUCCESS;
     unsigned wLength = 0x1, wIndex = 0x0, wValue = 0x0, bRequest = AUR_PROBE_CALFEATURE;
     int usbresult = 0;
     unsigned char data[1];
+    USBDevice *usb = AIODeviceTableGetUSBDeviceAtIndex( AIOContinuousBufGetDeviceIndex( buf ), &result );
+    if ( result != AIOUSB_SUCCESS )
+        return -result;
+
     if( !buf->testing ) {
-        usbresult = libusb_control_transfer( AIOUSB_GetDeviceHandle( AIOContinuousBufGetDeviceIndex( buf )),
-                                             USB_READ_FROM_DEVICE,
-                                             bRequest,
-                                             wValue,
-                                             wIndex,
-                                             data,
-                                             wLength,
-                                             buf->timeout
-                                             );
+        usbresult = usb->usb_control_transfer( usb,
+                                               USB_READ_FROM_DEVICE,
+                                               bRequest,
+                                               wValue,
+                                               wIndex,
+                                               data,
+                                               wLength,
+                                               buf->timeout
+                                               );
     }
     
     if (usbresult < 0 ) {
@@ -733,7 +738,8 @@ AIORET_TYPE AIOContinuousBufCopyData( AIOContinuousBuf *buf , unsigned short *da
 /*----------------------------------------------------------------------------*/
 void *RawCountsWorkFunction( void *object )
 {
-    AIORET_TYPE retval;
+    AIORET_TYPE retval = AIOUSB_SUCCESS;
+    AIORESULT result = AIOUSB_SUCCESS;
     int usbresult;
     AIOContinuousBuf *buf = (AIOContinuousBuf*)object;
     int bytes;
@@ -744,6 +750,12 @@ void *RawCountsWorkFunction( void *object )
     int usbfail_count = 5;
     unsigned char *data   = (unsigned char *)malloc( datasize );
     unsigned count = 0;
+    USBDevice *usb = AIODeviceTableGetUSBDeviceAtIndex( AIOContinuousBufGetDeviceIndex( buf ), &result );
+    if ( result != AIOUSB_SUCCESS ) {
+        buf->exitcode = -(AIORET_TYPE)result;
+        retval = -result;
+        goto out_RawCountsWorkFunction;
+    }
 
     while ( buf->status == RUNNING  ) {
 
@@ -765,13 +777,13 @@ void *RawCountsWorkFunction( void *object )
         }
         printf("");
 #else
-        usbresult = libusb_bulk_transfer( AIOUSB_GetDeviceHandle( AIOContinuousBufGetDeviceIndex( buf )),
-                                          0x86,
-                                          data,
-                                          datasize,
-                                          &bytes,
-                                          3000
-                                          );
+        usbresult = usb->usb_bulk_transfer( usb,
+                                            0x86,
+                                            data,
+                                            datasize,
+                                            &bytes,
+                                            3000
+                                            );
 #endif
 
         AIOUSB_DEVEL("libusb_bulk_transfer returned  %d as usbresult, bytes=%d\n", usbresult , (int)bytes);
@@ -813,6 +825,7 @@ void *RawCountsWorkFunction( void *object )
 #ifdef TESTING
     fclose(tmpf);
 #endif
+ out_RawCountsWorkFunction:
     AIOContinuousBufLock(buf);
     buf->status = TERMINATED;
     AIOContinuousBufUnlock(buf);
@@ -842,21 +855,21 @@ void *ActualWorkFunction( void *object )
     int usbfail = 0;
     int usbfail_count = 5;
     unsigned char *data   = (unsigned char *)malloc( datasize );
-    AIOUSBDevice *deviceDesc = AIOUSB_GetDevice_Lock( AIOContinuousBufGetDeviceIndex(buf), &result);
-    if(!deviceDesc || result != AIOUSB_SUCCESS) {
+    USBDevice *usb = AIODeviceTableGetUSBDeviceAtIndex( AIOContinuousBufGetDeviceIndex(buf), &result );
+    if ( result != AIOUSB_SUCCESS ) {
         retval = -result;
         goto out_ActualWorkFunction;
     }
 
     while ( buf->status == RUNNING ) {
-        usbresult = libusb_bulk_transfer( AIOUSB_GetDeviceHandle( AIOContinuousBufGetDeviceIndex( buf )),
-                                          0x86,
-                                          data,
-                                          /* buf->usbbuf_size, */
-                                          datasize,
-                                          &bytes,
-                                          3000
-                                          );
+        usbresult = usb->usb_bulk_transfer( usb,
+                                            0x86,
+                                            data,
+                                            /* buf->usbbuf_size, */
+                                            datasize,
+                                            &bytes,
+                                            3000
+                                            );
 
         AIOUSB_DEVEL("libusb_bulk_transfer returned  %d as usbresult, bytes=%d\n", usbresult , (int)bytes);
         if( bytes ) {
@@ -878,7 +891,6 @@ void *ActualWorkFunction( void *object )
  out_ActualWorkFunction:
     AIOUSB_DEVEL("Stopping\n");
     AIOContinuousBufCleanup( buf );
-
     pthread_exit((void*)&retval);
 }
 
@@ -886,20 +898,25 @@ void *ActualWorkFunction( void *object )
 AIORET_TYPE StartStreaming( AIOContinuousBuf *buf )
 {
     AIORET_TYPE retval = AIOUSB_SUCCESS;
-    libusb_device_handle *deviceHandle = AIOUSB_GetDeviceHandle(  AIOContinuousBufGetDeviceIndex( buf ));
+    AIORESULT result = AIOUSB_SUCCESS;
+    USBDevice *usb = AIODeviceTableGetUSBDeviceAtIndex( AIOContinuousBufGetDeviceIndex( buf ), &result );
+
+    if ( result != AIOUSB_SUCCESS ) 
+        return -AIOUSB_ERROR_INVALID_USBDEVICE;
+
     unsigned wValue = 0;
     unsigned wLength = 4;
     unsigned wIndex = 0;
     unsigned char data[] = {0x07, 0x0, 0x0, 0x1 } ;
-    int usbval = libusb_control_transfer(deviceHandle, 
-                                         USB_WRITE_TO_DEVICE, 
-                                         AUR_START_ACQUIRING_BLOCK,
-                                         wValue,
-                                         wIndex,
-                                         data,
-                                         wLength,
-                                         buf->timeout
-                                         );
+    int usbval = usb->usb_control_transfer(usb, 
+                                           USB_WRITE_TO_DEVICE, 
+                                           AUR_START_ACQUIRING_BLOCK,
+                                           wValue,
+                                           wIndex,
+                                           data,
+                                           wLength,
+                                           buf->timeout
+                                           );
     if ( usbval < 0 ) {
         retval = -(AIORET_TYPE)LIBUSB_RESULT_TO_AIOUSB_RESULT(usbval );
     }
@@ -928,37 +945,51 @@ AIORET_TYPE SetConfig( AIOContinuousBuf *buf )
 AIORET_TYPE ResetCounters( AIOContinuousBuf *buf )
 {
     AIORET_TYPE retval = AIOUSB_SUCCESS;
-    libusb_device_handle *deviceHandle = AIOUSB_GetDeviceHandle(  AIOContinuousBufGetDeviceIndex( buf ));
+
+    AIORESULT result = AIOUSB_SUCCESS;
     unsigned wValue = 0x7400;
     unsigned wLength = 0;
     unsigned wIndex = 0;
     unsigned char data[0];
-    int usbval = libusb_control_transfer(deviceHandle, 
-                                         USB_WRITE_TO_DEVICE, 
-                                         AUR_CTR_MODE,
-                                         wValue,
-                                         wIndex,
-                                         data,
-                                         wLength,
-                                         buf->timeout
-                                         );
+    int usbval;
+
+    USBDevice *usb = AIODeviceTableGetUSBDeviceAtIndex( AIOContinuousBufGetDeviceIndex( buf ), &result );
+    
+    if ( result != AIOUSB_SUCCESS ) {
+        goto out_ResetCounters;
+    } else if ( !usb ) {
+        result = AIOUSB_ERROR_USBDEVICE_NOT_FOUND;
+        goto out_ResetCounters;
+
+    }
+
+    usbval = usb->usb_control_transfer(usb, 
+                                       USB_WRITE_TO_DEVICE, 
+                                       AUR_CTR_MODE,
+                                       wValue,
+                                       wIndex,
+                                       data,
+                                       wLength,
+                                       buf->timeout
+                                       );
     if ( usbval  != 0 ) {
         retval = -(AIORET_TYPE)LIBUSB_RESULT_TO_AIOUSB_RESULT(usbval);
         goto out_ResetCounters;
     }
     wValue = 0xb600;
-    usbval = libusb_control_transfer(deviceHandle, 
-                                     USB_WRITE_TO_DEVICE, 
-                                     AUR_CTR_MODE,
-                                     wValue,
-                                     wIndex,
-                                     data,
-                                     wLength,
-                                     buf->timeout
-                                     );
+    usbval = usb->usb_control_transfer(usb,
+                                       USB_WRITE_TO_DEVICE, 
+                                       AUR_CTR_MODE,
+                                       wValue,
+                                       wIndex,
+                                       data,
+                                       wLength,
+                                       buf->timeout
+                                       );
     if ( usbval  != 0 )
         retval = -(AIORET_TYPE)LIBUSB_RESULT_TO_AIOUSB_RESULT(usbval);
  out_ResetCounters:
+    AIOUSB_UnLock();
     return retval;
 
 }
@@ -967,34 +998,40 @@ AIORET_TYPE ResetCounters( AIOContinuousBuf *buf )
 AIORET_TYPE AIOContinuousBufLoadCounters( AIOContinuousBuf *buf, unsigned countera, unsigned counterb )
 {
     AIORET_TYPE retval = AIOUSB_SUCCESS;
-    libusb_device_handle *deviceHandle = AIOUSB_GetDeviceHandle(  AIOContinuousBufGetDeviceIndex( buf ));
+    AIORESULT result = AIOUSB_SUCCESS;
+
+    USBDevice *usb = AIODeviceTableGetUSBDeviceAtIndex( AIOContinuousBufGetDeviceIndex( buf ), &result );
+    if ( result != AIOUSB_SUCCESS ) 
+        return -result;
+
     unsigned wValue = 0x7400;
     unsigned wLength = 0;
     unsigned char data[0];
     unsigned timeout = 3000;
-    int usbval = libusb_control_transfer(deviceHandle, 
-                                         USB_WRITE_TO_DEVICE, 
-                                         AUR_CTR_MODELOAD,
-                                         wValue,
-                                         countera,
-                                         data,
-                                         wLength,
-                                         timeout
-                                         );
+
+    int usbval = usb->usb_control_transfer(usb,
+                                           USB_WRITE_TO_DEVICE, 
+                                           AUR_CTR_MODELOAD,
+                                           wValue,
+                                           countera,
+                                           data,
+                                           wLength,
+                                           timeout
+                                           );
     if ( usbval != 0 ) {
         retval = -(AIORET_TYPE)LIBUSB_RESULT_TO_AIOUSB_RESULT(usbval);
         goto out_AIOContinuousBufLoadCounters;
     }
     wValue = 0xb600;
-    usbval = libusb_control_transfer(deviceHandle, 
-                                     USB_WRITE_TO_DEVICE, 
-                                     AUR_CTR_MODELOAD,
-                                     wValue,
-                                     counterb,
-                                     data,
-                                     wLength,
-                                     timeout
-                                     );
+    usbval = usb->usb_control_transfer(usb,
+                                       USB_WRITE_TO_DEVICE, 
+                                       AUR_CTR_MODELOAD,
+                                       wValue,
+                                       counterb,
+                                       data,
+                                       wLength,
+                                       timeout
+                                       );
     if ( usbval != 0 )
         retval = -(AIORET_TYPE)LIBUSB_RESULT_TO_AIOUSB_RESULT(usbval);
 
@@ -1002,7 +1039,7 @@ out_AIOContinuousBufLoadCounters:
     return retval;
 }
 
-int continuous_end( libusb_device_handle *deviceHandle , unsigned char *data, unsigned length )
+int continuous_end( USBDevice *usb , unsigned char *data, unsigned length )
 {
     int retval = 0;
     unsigned bmRequestType, wValue = 0x0, wIndex = 0x0, bRequest = 0xba, wLength = 0x01;
@@ -1015,28 +1052,28 @@ int continuous_end( libusb_device_handle *deviceHandle , unsigned char *data, un
     data[1] = 0;
     data[2] = 0x2;
     data[3] = 0;
-    libusb_control_transfer( deviceHandle,
-                             bmRequestType,
-                             bRequest,
-                             wValue,
-                             wIndex,
-                             &data[0],
-                             wLength,
-                             1000
-                             );
+    usb->usb_control_transfer( usb,
+                               bmRequestType,
+                               bRequest,
+                               wValue,
+                               wIndex,
+                               &data[0],
+                               wLength,
+                               1000
+                               );
 
     /* C0 BC 00 00 00 00 04 00 */
     bmRequestType = 0xc0;
     bRequest = 0xbc;
-    libusb_control_transfer( deviceHandle,
-                             bmRequestType,
-                             bRequest,
-                             wValue,
-                             wIndex,
-                             &data[0],
-                             wLength,
-                             1000
-                             );
+    usb->usb_control_transfer( usb,
+                               bmRequestType,
+                               bRequest,
+                               wValue,
+                               wIndex,
+                               &data[0],
+                               wLength,
+                               1000
+                               );
 
 
     /* 40 21 00 74 00 00 00 00 */
@@ -1045,26 +1082,26 @@ int continuous_end( libusb_device_handle *deviceHandle , unsigned char *data, un
     wValue = 0x7400;
     wLength = 0;
     wIndex = 0;
-    libusb_control_transfer( deviceHandle,
-                             bmRequestType,
-                             bRequest,
-                             wValue,
-                             wIndex,
-                             &data[0],
-                             wLength,
-                             1000
-                             );
-
+    usb->usb_control_transfer( usb,
+                               bmRequestType,
+                               bRequest,
+                               wValue,
+                               wIndex,
+                               &data[0],
+                               wLength,
+                               1000
+                               );
+    
     wValue = 0xb600;
-    libusb_control_transfer( deviceHandle,
-                             bmRequestType,
-                             bRequest,
-                             wValue,
-                             wIndex,
-                             &data[0],
-                             wLength,
-                             1000
-                             );
+    usb->usb_control_transfer( usb,
+                               bmRequestType,
+                               bRequest,
+                               wValue,
+                               wIndex,
+                               &data[0],
+                               wLength,
+                               1000
+                               );
 
     return retval;
 }
@@ -1074,8 +1111,13 @@ AIORET_TYPE AIOContinuousBufCleanup( AIOContinuousBuf *buf )
 {
     AIORET_TYPE retval;
     unsigned char data[4] = {0};
-    libusb_device_handle *deviceHandle = AIOUSB_GetDeviceHandle(  AIOContinuousBufGetDeviceIndex( buf ));
-    retval = (AIORET_TYPE)continuous_end( deviceHandle, data, 4 );
+    AIORESULT result = AIOUSB_SUCCESS;
+
+    USBDevice *usb = AIODeviceTableGetUSBDeviceAtIndex( AIOContinuousBufGetDeviceIndex( buf ), &result );
+    if ( result != AIOUSB_SUCCESS )
+        return -result;
+    
+    retval = (AIORET_TYPE)continuous_end( usb, data, 4 );
     return retval;
 }
 
@@ -1083,29 +1125,29 @@ AIORET_TYPE AIOContinuousBufPreSetup( AIOContinuousBuf * buf )
 {
     AIORET_TYPE retval = AIOUSB_SUCCESS;
     int usbval;
-    unsigned long result;
-    libusb_device_handle *deviceHandle;
-    AIOUSBDevice *deviceDesc = AIOUSB_GetDevice_Lock( AIOContinuousBufGetDeviceIndex(buf), &result);
-    if(!deviceDesc || result != AIOUSB_SUCCESS)
-        return -result;
-
-    deviceHandle = AIOUSB_GetDeviceHandle(  AIOContinuousBufGetDeviceIndex( buf ));
+    AIORESULT result;
     unsigned char data[0];
     unsigned wLength = 0;
     int wValue  = 0x7400, wIndex = 0;
     unsigned timeout = 7000;
+    USBDevice *usb = AIODeviceTableGetUSBDeviceAtIndex( AIOContinuousBufGetDeviceIndex( buf ), &result );
+    if (result != AIOUSB_SUCCESS ) {
+        retval = -result;
+        goto out_AIOContinuousBufPreSetup;
+    }
+
     /* Write 02 00 02 00 */
     /* 40 bc 00 00 00 00 04 00 */
   
-    usbval = libusb_control_transfer( deviceHandle, 
-                                      USB_WRITE_TO_DEVICE,
-                                      AUR_CTR_MODE,
-                                      wValue,
-                                      wIndex,
-                                      data,
-                                      wLength,
-                                      timeout
-                                      );
+    usbval = usb->usb_control_transfer( usb, 
+                                        USB_WRITE_TO_DEVICE,
+                                        AUR_CTR_MODE,
+                                        wValue,
+                                        wIndex,
+                                        data,
+                                        wLength,
+                                        timeout
+                                        );
     if( usbval != AIOUSB_SUCCESS ) {
         retval = -usbval;
         goto out_AIOContinuousBufPreSetup;
@@ -1113,14 +1155,14 @@ AIORET_TYPE AIOContinuousBufPreSetup( AIOContinuousBuf * buf )
     wValue = 0xb600;
 
     /* Read c0 bc 00 00 00 00 04 00 */ 
-    usbval = libusb_control_transfer( deviceHandle,
-                                      USB_WRITE_TO_DEVICE,
-                                      AUR_CTR_MODE,
-                                      wValue,
-                                      wIndex,
-                                      data,
-                                      wLength,
-                                      timeout
+    usbval = usb->usb_control_transfer( usb,
+                                        USB_WRITE_TO_DEVICE,
+                                        AUR_CTR_MODE,
+                                        wValue,
+                                        wIndex,
+                                        data,
+                                        wLength,
+                                        timeout
                                       );
     if( usbval != 0 )
         retval = -usbval;
@@ -1276,16 +1318,22 @@ AIORET_TYPE AIOContinuousBufCallbackStart( AIOContinuousBuf *buf )
 
 AIORET_TYPE AIOContinuousBuf_ResetDevice( AIOContinuousBuf *buf) 
 {
-    libusb_device_handle *deviceHandle;
     unsigned char data[2] = {0x01};
-    AIORET_TYPE retval;
+    AIORET_TYPE retval = AIOUSB_SUCCESS;
+    AIORESULT result = AIOUSB_SUCCESS;
     int usbval;
-    deviceHandle = AIOUSB_GetDeviceHandle(  AIOContinuousBufGetDeviceIndex( buf )); 
+    USBDevice *usb = AIODeviceTableGetUSBDeviceAtIndex( AIOContinuousBufGetDeviceIndex( buf ), &result );
+    if ( result != AIOUSB_SUCCESS ) {
+        retval = -result;
+        goto out_AIOContinuousBuf_ResetDevice;
+    }
   
-    usbval = libusb_control_transfer( deviceHandle, 0x40, 0xA0, 0xE600, 0 , data, 1, buf->timeout );
+    usbval = usb->usb_control_transfer(usb, 0x40, 0xA0, 0xE600, 0 , data, 1, buf->timeout );
     data[0] = 0;
-    usbval = libusb_control_transfer( deviceHandle,0x40, 0xA0, 0xE600, 0 , data, 1, buf->timeout );
+
+    usbval = usb->usb_control_transfer(usb, 0x40, 0xA0, 0xE600, 0 , data, 1, buf->timeout );
     retval = (AIORET_TYPE )usbval;
+ out_AIOContinuousBuf_ResetDevice:
     return retval;
 }
 
@@ -2145,7 +2193,7 @@ void bulk_transfer_test( int bufsize )
     int tmpsize = pow(16,(double)ceil( ((double)log((double)(bufsize/1000))) / log(16)));
     int keepgoing = 1;
     AIORET_TYPE retval;
-    unsigned long result;
+    AIORESULT result;
     int usbval;
     libusb_device_handle *deviceHandle;
     unsigned char data[0];
@@ -2163,8 +2211,11 @@ void bulk_transfer_test( int bufsize )
     AIOUSB_Init();
     GetDevices();
 
-    deviceHandle = AIOUSB_GetDeviceHandle(  AIOContinuousBufGetDeviceIndex( buf ));
-  
+    USBDevice *usb = AIODeviceTableGetUSBDeviceAtIndex( AIOContinuousBufGetDeviceIndex( buf ), &result );
+    if ( result != AIOUSB_SUCCESS ) {
+        retval = -result;
+        goto out_bulk_transfer_test;
+    }
     AIOContinuousBufSetClock( buf, 1000 );
 
     usbval = libusb_control_transfer( deviceHandle, 
@@ -2217,8 +2268,8 @@ void bulk_transfer_test( int bufsize )
         AIOUSB_ERROR("ERROR: can't bulk acquire: %d\n", usbval );
         _exit(1);
     }
+ out_bulk_transfer_test:
     free(tmp);
-
 }
 
 void stress_copy_counts (int bufsize) 

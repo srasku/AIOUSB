@@ -3,6 +3,7 @@
 
 #include "AIOTypes.h"
 #include "ADCConfigBlock.h"
+#include "USBDevice.h"
 #include <string.h>
 #include <semaphore.h>
 #include <libusb.h>
@@ -12,16 +13,16 @@ namespace AIOUSB
 {
 #endif
 
+/* libusb_device *device;              /\**< NULL == no device *\/ */
+/* libusb_device_handle *deviceHandle; /\**< libusb handles *\/ */
 typedef struct aio_usb_driver {
-    libusb_device *device;              /**< NULL == no device */
-    libusb_device_handle *deviceHandle; /**< libusb handles */
+    USBDevice *usb_device;
     AIOUSB_BOOL bOpen;
     int deviceIndex;
     AIOUSB_BOOL isInit;
     unsigned long PID;
     unsigned long DIOConfigBits;
     
-
     // run-time settings
     AIOUSB_BOOL discardFirstSample; /**< AIOUSB_TRUE == discard first A/D sample in all A/D read methods */
     unsigned commTimeout;           /**< timeout for device communication (ms.) */
@@ -95,8 +96,10 @@ typedef struct aio_usb_driver {
     AIOUSB_BOOL valid;
 } AIOUSBDevice;
 
-libusb_device_handle *AIOUSBDeviceGetUSBHandle( AIOUSBDevice *dev );
-libusb_device_handle *AIOUSBDeviceGetUSBHandleFromDeviceIndex( unsigned long DeviceIndex, AIOUSBDevice **dev, AIORESULT *result );
+USBDevice *AIOUSBDeviceGetUSBHandle( AIOUSBDevice *dev );
+USBDevice *AIOUSBDeviceGetUSBHandleFromDeviceIndex( unsigned long DeviceIndex, AIOUSBDevice **dev, AIORESULT *result );
+
+AIORET_TYPE AIOUSBDeviceSetUSBHandle( AIOUSBDevice *dev, USBDevice *usb );
 
 AIORET_TYPE AIOUSBDeviceSetADCConfigBlock( AIOUSBDevice *dev, ADCConfigBlock *conf );
 ADCConfigBlock * AIOUSBDeviceGetADCConfigBlock( AIOUSBDevice *dev );

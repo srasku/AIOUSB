@@ -608,11 +608,19 @@ AIORESULT DIO_StreamSetClocks(
     if( *ReadClockHz < 0 || *WriteClockHz < 0  )
         return AIOUSB_ERROR_INVALID_PARAMETER;
     AIORESULT result = AIOUSB_SUCCESS;
-    AIOUSBDevice *device = _check_dio_stream( DeviceIndex, &result );
-    libusb_device_handle * deviceHandle = AIOUSB_GetDeviceHandle(DeviceIndex);
+    AIOUSBDevice *device = NULL;
+    int CONFIG_BLOCK_SIZE = 5;
+    unsigned char configBlock[ CONFIG_BLOCK_SIZE ];
+    int bytesTransferred;
+    USBDevice *usb = AIOUSBDeviceGetUSBHandleFromDeviceIndex( DeviceIndex, &device, &result );
+    if ( result != AIOUSB_SUCCESS )
+        goto out_DIO_StreamSetClocks;
+    if (!usb ) {
+        result = AIOUSB_ERROR_USBDEVICE_NOT_FOUND;
+        goto out_DIO_StreamSetClocks;
+    }
+    
 
-    if (!deviceHandle  )
-        return AIOUSB_ERROR_DEVICE_NOT_CONNECTED;
     /**
      * @note  
      * @verbatim
@@ -627,27 +635,31 @@ AIORESULT DIO_StreamSetClocks(
      * @endverbatim
      */
 
-    int CONFIG_BLOCK_SIZE = 5;
-    unsigned char configBlock[ CONFIG_BLOCK_SIZE ];
-    configBlock[ 0 ] = 0x03;                                    // disable read and write clocks by default
+
+    configBlock[ 0 ] = 0x03; /* disable read and write clocks by default */
+
     if(*WriteClockHz > 0)
-        configBlock[ 0 ] &= ~0x01;                            // enable write clock
+        configBlock[ 0 ] &= ~0x01; /* enable write clock */
+
     if(*ReadClockHz > 0)
-        configBlock[ 0 ] &= ~0x02;                            // enable read clock
+        configBlock[ 0 ] &= ~0x02; /* enable read clock */
+
     *( unsigned short* )&configBlock[ 1 ] = OctaveDacFromFreq(WriteClockHz);
     *( unsigned short* )&configBlock[ 3 ] = OctaveDacFromFreq(ReadClockHz);
-    int bytesTransferred = libusb_control_transfer(deviceHandle,
-                                                   USB_WRITE_TO_DEVICE, 
-                                                   AUR_DIO_SETCLOCKS,
-                                                   0, 
-                                                   0, 
-                                                   configBlock, 
-                                                   CONFIG_BLOCK_SIZE, 
-                                                   device->commTimeout
-                                                   );
+    bytesTransferred = usb->usb_control_transfer(usb,
+                                                 USB_WRITE_TO_DEVICE, 
+                                                 AUR_DIO_SETCLOCKS,
+                                                 0, 
+                                                 0, 
+                                                 configBlock, 
+                                                 CONFIG_BLOCK_SIZE, 
+                                                 device->commTimeout
+                                                 );
     if(bytesTransferred != CONFIG_BLOCK_SIZE)
         result = LIBUSB_RESULT_TO_AIOUSB_RESULT(bytesTransferred);
-          
+
+ out_DIO_StreamSetClocks:
+    AIOUSB_UnLock();
     return result;
 }
 

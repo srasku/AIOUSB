@@ -17,14 +17,18 @@ namespace AIOUSB
 PUBLIC_EXTERN AIOUSBDevice deviceTable[ MAX_USB_DEVICES ];
 
 PUBLIC_EXTERN AIORESULT AIODeviceTableAddDeviceToDeviceTable( int *numAccesDevices, unsigned long productID ) ;
-PUBLIC_EXTERN AIORESULT AIODeviceTableAddDeviceToDeviceTableWithUSBDevice( int *numAccesDevices, unsigned long productID ,libusb_device *usb_dev );
-PUBLIC_EXTERN void AIODeviceTablePopulateTable(void);
-PUBLIC_EXTERN void AIODeviceTablePopulateTableTest(unsigned long *products, int length );
+PUBLIC_EXTERN AIORESULT AIODeviceTableAddDeviceToDeviceTableWithUSBDevice( int *numAccesDevices, unsigned long productID , USBDevice *usb_dev );
+PUBLIC_EXTERN AIORET_TYPE AIODeviceTablePopulateTable(void);
+PUBLIC_EXTERN AIORET_TYPE AIODeviceTablePopulateTableTest(unsigned long *products, int length );
 PUBLIC_EXTERN AIORESULT AIODeviceTableClearDevices( void );
 PUBLIC_EXTERN AIOUSBDevice *AIODeviceTableGetDeviceAtIndex( unsigned long index , AIORESULT *result );
+PUBLIC_EXTERN USBDevice *AIODeviceTableGetUSBDeviceAtIndex( unsigned long DeviceIndex, AIORESULT *result );
+
+
 
 PUBLIC_EXTERN unsigned long QueryDeviceInfo( unsigned long DeviceIndex, unsigned long *pPID, unsigned long *pNameSize, 
                                              char *pName, unsigned long *pDIOBytes, unsigned long *pCounters );
+PUBLIC_EXTERN AIORET_TYPE GetDevices(void);
 
 PUBLIC_EXTERN char *GetSafeDeviceName( unsigned long DeviceIndex );
 PUBLIC_EXTERN char *ProductIDToName( unsigned int productID );

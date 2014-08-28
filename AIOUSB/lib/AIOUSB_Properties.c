@@ -106,7 +106,7 @@ unsigned long AIOUSB_GetDeviceByProductID(int minProductID,
     int index, numDevices = 0;
 
     for(index = 0; index < MAX_USB_DEVICES && numDevices < maxDevices; index++) {
-        if( deviceTable[ index ].device != NULL &&
+        if( deviceTable[ index ].usb_device != NULL &&
             deviceTable[ index ].ProductID >= ( unsigned )minProductID &&
             deviceTable[ index ].ProductID <= ( unsigned )maxProductID
             ) {
@@ -187,7 +187,7 @@ unsigned long GetDeviceBySerialNumber(unsigned long *pSerialNumber)
 
     int index;
     for(index = 0; index < MAX_USB_DEVICES; index++) {
-          if(deviceTable[ index ].device != NULL) {
+          if(deviceTable[ index ].usb_device != NULL) {
                 AIOUSB_UnLock();                                            // unlock while communicating with device
                 unsigned long deviceSerialNumber;
                 const unsigned long result = GetDeviceSerialNumber(index, &deviceSerialNumber);
@@ -298,6 +298,7 @@ const char *AIOUSB_GetResultCodeAsString(unsigned long result_value)
          * specifically, it contains pointers into resultCodeTable[]; to get the actual result
          * code, the pointer in resultCodeIndex[] must be dereferenced
          */
+        AIOUSB_UnLock();
           static struct ResultCodeName const *resultCodeIndex[ NUM_RESULT_CODES ];  /* index of result codes in resultCodeTable[] */
           const unsigned long INIT_PATTERN = 0x100c48b9ul;                          /* random pattern */
           static unsigned long resultCodeIndexCreated = 0;                          /* == INIT_PATTERN if index has been created */
@@ -336,7 +337,7 @@ void AIOUSB_ListDevices()
           if(AIOUSB_IsInit()) {
                 int index;
                 for(index = 0; index < MAX_USB_DEVICES; index++) {
-                      if(deviceTable[ index ].device != NULL) {
+                    if(deviceTable[ index ].usb_device != NULL) {
                             const int MAX_NAME_SIZE = 100;
                             char name[ MAX_NAME_SIZE + 1 ];
                             unsigned long productID;

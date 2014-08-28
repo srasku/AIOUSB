@@ -110,6 +110,21 @@ typedef enum BOOL BOOL;
 #endif
 
 
+#define EXIT_FN_IF_NO_VALID_USB( d, r, f, u, g ) do {           \
+        if ( !d ) {                                             \
+            r = -AIOUSB_ERROR_DEVICE_NOT_FOUND;                 \
+            goto g;                                             \
+        } else if ( ( r = f ) != AIOUSB_SUCCESS  ) {            \
+            goto g;                                             \
+        } else if ( !(u = AIOUSBDeviceGetUSBHandle( d )))  {    \
+            r = -AIOUSB_ERROR_INVALID_USBDEVICE;                \
+            goto g;                                             \
+        }                                                       \
+    } while (0 )
+
+
+
+
 CREATE_ENUM_W_START(ProductIDS,0,
                      ACCES_VENDOR_ID    = 0x1605,
                      /**
@@ -310,6 +325,7 @@ CREATE_ENUM_W_START( ResultCode, 0,
                      AIOUSB_SUCCESS,
                      AIOUSB_ERROR_DEVICE_NOT_CONNECTED,
                      AIOUSB_ERROR_DUP_NAME,
+                     AIOUSB_ERROR_NOT_INIT,
                      AIOUSB_ERROR_FILE_NOT_FOUND,
                      AIOUSB_ERROR_INVALID_DATA,
                      AIOUSB_ERROR_INVALID_INDEX,
@@ -323,6 +339,8 @@ CREATE_ENUM_W_START( ResultCode, 0,
                      AIOUSB_ERROR_TIMEOUT,
                      AIOUSB_ERROR_HANDLE_EOF,
                      AIOUSB_ERROR_DEVICE_NOT_FOUND,
+                     AIOUSB_ERROR_USBDEVICE_NOT_FOUND,
+                     AIOUSB_ERROR_INVALID_USBDEVICE,
                      AIOUSB_ERROR_INVALID_DEVICE,
                      AIOUSB_ERROR_INVALID_DEVICE_SETTING,
                      AIOUSB_ERROR_INVALID_DEVICE_FUNCTIONAL_PARAMETER,
@@ -543,8 +561,6 @@ typedef struct {
   unsigned short *buffer;
   unsigned long bytes_remaining;
 } AIOBuf ;
-
-extern unsigned long GetDevices( void );
 
 typedef struct  {
     const char *Name;                /**< null-terminated device name or 0 */

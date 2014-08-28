@@ -2,6 +2,7 @@
 #include "AIODeviceTable.h"
 #include "AIOUSB_Core.h"
 
+
 #ifdef __cplusplus
 namespace AIOUSB {
 #endif
@@ -110,17 +111,34 @@ AIORET_TYPE AIOUSBDeviceGetTesting( AIOUSBDevice *dev )
 }
 
 /*----------------------------------------------------------------------------*/
-libusb_device_handle *AIOUSBDeviceGetUSBHandle( AIOUSBDevice *dev ) 
+USBDevice *AIOUSBDeviceGetUSBHandle( AIOUSBDevice *dev ) 
 {
-    return dev->deviceHandle;
+    return dev->usb_device;
 }
 
 /*----------------------------------------------------------------------------*/
-libusb_device_handle *AIOUSBDeviceGetUSBHandleFromDeviceIndex( unsigned long DeviceIndex, AIOUSBDevice **dev, AIORESULT *result ) 
+AIORET_TYPE AIOUSBDeviceSetUSBHandle( AIOUSBDevice *dev, USBDevice *usb )
+{
+    AIORET_TYPE retval = AIOUSB_SUCCESS;
+    assert(dev);
+    if ( !dev ) {
+        retval =  -AIOUSB_ERROR_INVALID_DEVICE;
+    } else if (!usb ) { 
+        retval = -AIOUSB_ERROR_INVALID_PARAMETER;
+    } else {
+        dev->usb_device = usb;
+    }
+    return retval;
+
+}
+
+/*----------------------------------------------------------------------------*/
+USBDevice *AIOUSBDeviceGetUSBHandleFromDeviceIndex( unsigned long DeviceIndex, AIOUSBDevice **dev, AIORESULT *result ) 
 {
     
     *dev = AIODeviceTableGetDeviceAtIndex( DeviceIndex , result );
-    libusb_device_handle *dh = NULL;
+    USBDevice *dh;
+
     if ( *result != AIOUSB_SUCCESS ) {
     } else if ( !*dev  ) {
         *result = AIOUSB_ERROR_DEVICE_NOT_FOUND;
@@ -129,7 +147,6 @@ libusb_device_handle *AIOUSBDeviceGetUSBHandleFromDeviceIndex( unsigned long Dev
     }
     return dh;
 }
-
 
 
 #ifdef __cplusplus
@@ -154,6 +171,7 @@ TEST(Initialization, SetDifferentConfigBlocks )
     EXPECT_TRUE( dev );
     ADCConfigBlock *readconf = NULL;
     ADCConfigBlock *conf = (ADCConfigBlock*)calloc(sizeof(ADCConfigBlock),1);
+    AIOUSBDevice dev;
     EXPECT_TRUE(conf);
     memset(conf->registers,1,16);
 
@@ -162,7 +180,7 @@ TEST(Initialization, SetDifferentConfigBlocks )
     result = AIOUSBDeviceSetADCConfigBlock( dev, conf );
     EXPECT_NE( result, AIOUSB_TRUE );
 
-    result = ADCConfigBlockInitialize( conf ); 
+    result = ADCConfigBlockInitialize( conf , &dev ); 
     EXPECT_EQ( result, AIOUSB_SUCCESS );
 
     result = AIOUSBDeviceSetADCConfigBlock( dev, conf );
@@ -192,7 +210,7 @@ TEST(TestingFeatures, PropogateTesting )
 {
     AIOUSBDevice *dev = NewAIOUSBDevice(0) ;
     ADCConfigBlock conf;
-    ADCConfigBlockInitialize( &conf );
+    ADCConfigBlockInitialize( &conf , dev );
     
     AIOUSBDeviceSetADCConfigBlock( dev, &conf );
     

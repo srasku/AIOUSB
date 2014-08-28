@@ -145,7 +145,6 @@ extern unsigned long AIOUSB_INIT_PATTERN;
 extern unsigned long aiousbInit ;
 
 PUBLIC_EXTERN AIOBuf *CreateSmartBuffer( unsigned long DeviceIndex );
-PUBLIC_EXTERN unsigned long ADC_CopyConfig(unsigned long DeviceIndex, ADCConfigBlock *config  );
 PUBLIC_EXTERN unsigned long ADC_ResetDevice( unsigned long DeviceIndex  );
 PUBLIC_EXTERN AIORET_TYPE AIOUSB_GetDeviceSerialNumber( unsigned long DeviceIndex );
 
