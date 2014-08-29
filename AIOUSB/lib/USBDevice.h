@@ -31,6 +31,8 @@ typedef struct aiousb_device {
 
 USBDevice * NewUSBDevice(libusb_device *dev, libusb_device_handle *handle );
 void DeleteUSBDevice( USBDevice *dev );
+USBDevice *CopyUSBDevice( USBDevice *usb );
+AIORET_TYPE InitializeUSBDevice( USBDevice *usb );
 
 AIORET_TYPE FindUSBDevices( USBDevice **devs, int *size );
 void DeleteUSBDevices( USBDevice *devs);

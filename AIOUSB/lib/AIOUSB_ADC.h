@@ -10,6 +10,7 @@ namespace AIOUSB
 #endif
 
 
+AIORET_TYPE WriteConfigBlock( AIOUSBDevice *device, ADCConfigBlock *config );
 
 PUBLIC_EXTERN unsigned ADC_GetOversample( unsigned long DeviceIndex );
 PUBLIC_EXTERN unsigned long ADC_SetOversample( unsigned long DeviceIndex, unsigned char Oversample );

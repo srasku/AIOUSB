@@ -1103,6 +1103,7 @@ AIOUSBDevice *AIODeviceTableGetDeviceAtIndex( unsigned long DeviceIndex , AIORES
 /*----------------------------------------------------------------------------*/
 void _setup_device_parameters( AIOUSBDevice *device , unsigned long productID ) 
 {
+    device->ProductID = productID;
     device->StreamingBlockSize = 31ul * 1024ul;
     device->bGetName = AIOUSB_TRUE;             // most boards support this feature
     if(productID == USB_DIO_32) {
@@ -1282,6 +1283,12 @@ void _setup_device_parameters( AIOUSBDevice *device , unsigned long productID )
         device->LastDIOData = ( unsigned char* )calloc(device->DIOBytes, sizeof(unsigned char));
         // assert(device->LastDIOData != 0);
     }
+
+    /* Clear up the CachedConfigBlock */
+    ADCConfigBlockInitialize( &device->cachedConfigBlock , device );
+    device->cachedConfigBlock.size = device->ConfigBytes;
+    device->cachedConfigBlock.testing = device->testing;
+
     device->valid = AIOUSB_TRUE;
 }
 
@@ -1453,21 +1460,25 @@ AIORET_TYPE AIODeviceTablePopulateTable(void)
     int libusbResult = libusb_init( NULL );
     if (libusbResult != LIBUSB_SUCCESS)
         return -libusbResult;
-
     int numAccesDevices = 0;
-    /* libusb_device **deviceList; */
     AIORET_TYPE result;
     USBDevice *usbdevices = NULL;
     int size = 0;
     result = FindUSBDevices( &usbdevices, &size );
-    if ( result != AIOUSB_SUCCESS ) 
+    if ( result < AIOUSB_SUCCESS ) 
         return result;
 
     for ( int i = 0; i < size ; i ++ ) {
         AIOUSBDevice *device = (AIOUSBDevice *)&deviceTable[ numAccesDevices++ ];
-        /* unsigned productID = device->ProductID = libusbDeviceDesc.idProduct; */
+
+        if ( i == 0 ) {
+            /* Setup the first USB device */
+
+        }
         unsigned productID = USBDeviceGetIdProduct( &usbdevices[i] );
         _setup_device_parameters( device, productID );
+        device->usb_device = CopyUSBDevice( &usbdevices[i] );
+        InitializeUSBDevice( device->usb_device ); /* Sets up the internals for actually working */
     }
     
     DeleteUSBDevices( usbdevices );
@@ -1476,29 +1487,27 @@ AIORET_TYPE AIODeviceTablePopulateTable(void)
     return AIOUSB_SUCCESS;
 }
 
-    /* int numDevices = libusb_get_device_list(NULL, &deviceList); */
-    /* if(numDevices > 0) { */
-    /*       int index; */
-    /*       for(index = 0; index < numDevices && numAccesDevices < MAX_USB_DEVICES; index++) { */
-    /*             struct libusb_device_descriptor libusbDeviceDesc; */
-    /*             libusb_device *usb_device = deviceList[ index ]; */
-    /*             libusbResult = libusb_get_device_descriptor(usb_device, &libusbDeviceDesc); */
-    /*             if(libusbResult == LIBUSB_SUCCESS) { */
-    /*                   if(libusbDeviceDesc.idVendor == ACCES_VENDOR_ID) { */
-    /*                     /\* add this device to the device table *\/ */
-    /*                       AIOUSBDevice *device = (AIOUSBDevice *)&deviceTable[ numAccesDevices++ ]; */
-    /*                       device->device = libusb_ref_device(usb_device); */
-    /*                       device->deviceHandle = NULL; */
-    /*                       /\* set up device-specific properties *\/ */
-    /*                       unsigned productID = device->ProductID = libusbDeviceDesc.idProduct; */
-    /*                       _setup_device_parameters( device , productID ); */
-    /*                   } */
-    /*             } */
-    /*       } */
-    /* } */
-    /* libusb_free_device_list(deviceList, AIOUSB_TRUE); */
-
-
+/* int numDevices = libusb_get_device_list(NULL, &deviceList); */
+/* if(numDevices > 0) { */
+/*       int index; */
+/*       for(index = 0; index < numDevices && numAccesDevices < MAX_USB_DEVICES; index++) { */
+/*             struct libusb_device_descriptor libusbDeviceDesc; */
+/*             libusb_device *usb_device = deviceList[ index ]; */
+/*             libusbResult = libusb_get_device_descriptor(usb_device, &libusbDeviceDesc); */
+/*             if(libusbResult == LIBUSB_SUCCESS) { */
+/*                   if(libusbDeviceDesc.idVendor == ACCES_VENDOR_ID) { */
+/*                     /\* add this device to the device table *\/ */
+/*                       AIOUSBDevice *device = (AIOUSBDevice *)&deviceTable[ numAccesDevices++ ]; */
+/*                       device->device = libusb_ref_device(usb_device); */
+/*                       device->deviceHandle = NULL; */
+/*                       /\* set up device-specific properties *\/ */
+/*                       unsigned productID = device->ProductID = libusbDeviceDesc.idProduct; */
+/*                       _setup_device_parameters( device , productID ); */
+/*                   } */
+/*             } */
+/*       } */
+/* } */
+/* libusb_free_device_list(deviceList, AIOUSB_TRUE); */
 
 /*----------------------------------------------------------------------------*/
 /**
@@ -1510,7 +1519,8 @@ AIORET_TYPE AIODeviceTablePopulateTable(void)
  */
 unsigned long AIOUSB_Init(void) 
 {
-    unsigned long result = AIOUSB_SUCCESS;
+    AIORESULT result = AIOUSB_SUCCESS;
+    AIORET_TYPE retval = AIOUSB_SUCCESS;
 
     if(!AIOUSB_IsInit()) {
           AIODeviceTableInit();
@@ -1518,25 +1528,26 @@ unsigned long AIOUSB_Init(void)
           pthread_mutexattr_t mutexAttr;
           if(pthread_mutexattr_init(&mutexAttr) == 0) {
                 if(pthread_mutexattr_settype(&mutexAttr, PTHREAD_MUTEX_RECURSIVE) == 0) {
-                      if(pthread_mutex_init(&aiousbMutex, &mutexAttr) == 0) {
-
+                    if(pthread_mutex_init(&aiousbMutex, &mutexAttr) == 0) {
+                        /**
+                         * @note
+                         * populate device table so users can use diFirst and diOnly immediately; be
+                         * sure to call PopulateDeviceTable() after 'aiousbInit = AIOUSB_INIT_PATTERN;'
+                         */
                           if ( AIODeviceTablePopulateTable() != AIOUSB_SUCCESS ) {
                               pthread_mutex_destroy(&aiousbMutex);
                               result = LIBUSB_RESULT_TO_AIOUSB_RESULT(libusbResult);
+                          } else {
+                              AIOUSB_SetInit();
                           }
-                            /* const int libusbResult = libusb_init( NULL ); */
-                            /* if(libusbResult == LIBUSB_SUCCESS) { */
-                            /*   /\** */
-                            /*    * @note */
-                            /*    * populate device table so users can use diFirst and diOnly immediately; be */
-                            /*    * sure to call PopulateDeviceTable() after 'aiousbInit = AIOUSB_INIT_PATTERN;' */
-                            /*    *\/ */
-                            /*       aiousbInit = AIOUSB_INIT_PATTERN; */
-                            /*       PopulateDeviceTable(); */
-                            /*   } else { */
-                            /*       pthread_mutex_destroy(&aiousbMutex); */
-                            /*       result = LIBUSB_RESULT_TO_AIOUSB_RESULT(libusbResult); */
-                            /*   } */
+                          /* const int libusbResult = libusb_init( NULL ); */
+                          /* if(libusbResult == LIBUSB_SUCCESS) { */
+                          /*       aiousbInit = AIOUSB_INIT_PATTERN; */
+                          /*       PopulateDeviceTable(); */
+                          /*   } else { */
+                          /*       pthread_mutex_destroy(&aiousbMutex); */
+                          /*       result = LIBUSB_RESULT_TO_AIOUSB_RESULT(libusbResult); */
+                          /*   } */
 
                         } else
                           result = AIOUSB_ERROR_INVALID_MUTEX;
@@ -1546,18 +1557,23 @@ unsigned long AIOUSB_Init(void)
             } else
               result = AIOUSB_ERROR_INVALID_MUTEX;
 #else
-          const int libusbResult = libusb_init(NULL);
-          if(libusbResult == LIBUSB_SUCCESS) {
-            /**
-             * @note
-             * populate device table so users can use diFirst and diOnly immediately; be
-             * sure to call PopulateDeviceTable() after 'aiousbInit = AIOUSB_INIT_PATTERN;'
-             */
-                aiousbInit = AIOUSB_INIT_PATTERN;
-                AIODeviceTablePopulateTable();
-            } else {
-                result = LIBUSB_RESULT_TO_AIOUSB_RESULT(libusbResult);
-            }
+          retval  = AIODeviceTablePopulateTable();
+          if ( retval >= AIOUSB_SUCCESS ) {
+              AIOUSB_SetInit();
+          }
+
+          /* const int libusbResult = libusb_init(NULL); */
+          /* if(libusbResult == LIBUSB_SUCCESS) { */
+          /*   /\** */
+          /*    * @note */
+          /*    * populate device table so users can use diFirst and diOnly immediately; be */
+          /*    * sure to call PopulateDeviceTable() after 'aiousbInit = AIOUSB_INIT_PATTERN;' */
+          /*    *\/ */
+          /*       aiousbInit = AIOUSB_INIT_PATTERN; */
+          /*       AIODeviceTablePopulateTable(); */
+          /*   } else { */
+          /*       result = LIBUSB_RESULT_TO_AIOUSB_RESULT(libusbResult); */
+          /*   } */
 #endif
       }
     return result;

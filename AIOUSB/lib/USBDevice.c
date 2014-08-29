@@ -35,6 +35,16 @@ USBDevice * NewUSBDevice( libusb_device *dev, libusb_device_handle *handle)
         _initialize( obj, dev, handle, NULL );
     return obj;
 }
+
+/*----------------------------------------------------------------------------*/
+USBDevice *CopyUSBDevice( USBDevice *usb )
+{
+    USBDevice *newusb = (USBDevice *)calloc(sizeof(USBDevice), 1 );
+    memcpy(newusb, usb, sizeof(USBDevice));
+    return newusb;
+}
+
+
 /*----------------------------------------------------------------------------*/
 AIORET_TYPE USBDeviceClose( USBDevice *usb )
 {
