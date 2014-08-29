@@ -52,6 +52,9 @@ AIORET_TYPE ADCConfigBlockSetDevice( ADCConfigBlock *obj, AIOUSBDevice *dev )
 }
 
 /*----------------------------------------------------------------------------*/
+/**
+ * @brief initializes an ADCConfigBlock using parameters from the AIOUSBDevice
+ */
 AIORET_TYPE ADCConfigBlockInitialize( ADCConfigBlock *config , AIOUSBDevice *dev) 
 {
     assert(config);
@@ -62,9 +65,10 @@ AIORET_TYPE ADCConfigBlockInitialize( ADCConfigBlock *config , AIOUSBDevice *dev
         return -AIOUSB_ERROR_INVALID_DEVICE;
 
     config->device   = dev;
-    config->size     = AD_CONFIG_REGISTERS;
-    config->testing  = AIOUSB_FALSE;
-    config->timeout  = 1000;
+    config->size     = dev->ConfigBytes;
+    config->testing  = dev->testing;
+    config->timeout  = dev->commTimeout;
+
     memset(config->registers,0, AD_CONFIG_REGISTERS );
     return AIOUSB_SUCCESS;
 }
@@ -255,7 +259,7 @@ AIORET_TYPE ADCConfigBlockSetGainCode(ADCConfigBlock *config, unsigned channel, 
     if (channel < AD_MAX_CHANNELS && channel < deviceDesc->ADCMUXChannels) {
         int reg = AD_CONFIG_GAIN_CODE + channel / deviceDesc->ADCChannelsPerGroup;
         if ( reg < AD_NUM_GAIN_CODES )
-            return -AIOUSB_ERROR_INVALID_ADCONFIG_REGISTER_SETTING;
+            return -AIOUSB_ERROR_INVALID_ADCCONFIG_REGISTER_SETTING;
 
         config->registers[ reg ] = (config->registers[ reg ] & 
                                     ~( unsigned char )AD_GAIN_CODE_MASK) | 
@@ -417,7 +421,7 @@ AIORET_TYPE ADCConfigBlockSetDifferentialMode(ADCConfigBlock *config, unsigned c
     
     int reg = AD_CONFIG_GAIN_CODE + channel / deviceDesc->ADCChannelsPerGroup;
     if ( reg < AD_NUM_GAIN_CODE_REGISTERS ) 
-        return -AIOUSB_ERROR_INVALID_ADCONFIG_REGISTER_SETTING;
+        return -AIOUSB_ERROR_INVALID_ADCCONFIG_REGISTER_SETTING;
     if(differentialMode)
         config->registers[ reg ] |= ( unsigned char )AD_DIFFERENTIAL_MODE;
     else

@@ -180,7 +180,10 @@ AIORET_TYPE _check_cal_table( AIORET_TYPE in, const unsigned short calTable[] )
     }
 }
 
-static AIORET_TYPE _check_mutex( AIORET_TYPE in ) 
+/**
+ * @brief shared amongst many files
+ */
+AIORET_TYPE _check_mutex( AIORET_TYPE in ) 
 {
     if ( in  != AIOUSB_SUCCESS ) { 
        return in;
@@ -204,7 +207,7 @@ static AIORET_TYPE _check_adcstream( AIORET_TYPE in, AIOUSBDevice *deviceDesc )
    }
 }
 
-static AIORET_TYPE _check_query_cal( AIORET_TYPE in, unsigned long DeviceIndex ) 
+AIORET_TYPE _check_query_cal( AIORET_TYPE in, unsigned long DeviceIndex ) 
 {
     AIORESULT result = AIOUSB_SUCCESS;
     if ( in  != AIOUSB_SUCCESS ) { 
@@ -679,10 +682,10 @@ AIORET_TYPE AIOUSB_InitConfigBlock(ADCConfigBlock *config, unsigned long DeviceI
  * @param fileName
  * @return
  */
-unsigned long AIOUSB_ADC_LoadCalTable(
-                                      unsigned long DeviceIndex,
-                                      const char *fileName
-                                      )
+AIORET_TYPE AIOUSB_ADC_LoadCalTable(
+                                    unsigned long DeviceIndex,
+                                    const char *fileName
+                                    )
 {
     if(fileName == 0)
         return AIOUSB_ERROR_INVALID_PARAMETER;
@@ -733,23 +736,23 @@ unsigned long AIOUSB_ADC_LoadCalTable(
 
     return result;
 }
+
 /*------------------------------------------------------------------------*/
 /**
  * @param DeviceIndex
  * @param calTable
  * @return
  */
-unsigned long AIOUSB_ADC_SetCalTable(
-                                     unsigned long DeviceIndex,
-                                     const unsigned short calTable[]
-                                     )
+AIORET_TYPE AIOUSB_ADC_SetCalTable(
+                                   unsigned long DeviceIndex,
+                                   const unsigned short calTable[]
+                                   )
 {
     int SRAM_BLOCK_WORDS = 1024;       // can send 1024 words at a time to SRAM
     int sramAddress = 0, wordsRemaining = CAL_TABLE_WORDS;
     int wordsWritten, bytesTransferred , size_to_write, libusbResult;
-    AIORESULT result = AIOUSB_SUCCESS;
     AIORET_TYPE retval = AIOUSB_SUCCESS;
-    AIOUSBDevice *deviceDesc =  AIODeviceTableGetDeviceAtIndex( DeviceIndex, &result );
+    AIOUSBDevice *deviceDesc =  AIODeviceTableGetDeviceAtIndex( DeviceIndex, (AIORESULT*)&retval );
     USBDevice *usb;
     EXIT_FN_IF_NO_VALID_USB( deviceDesc, 
                              retval, 
@@ -765,8 +768,6 @@ unsigned long AIOUSB_ADC_SetCalTable(
      * send a control message to load it into the SRAM
      */
     
-    AIOUSB_UnLock();
-
     while (wordsRemaining > 0) {
         wordsWritten = (wordsRemaining < SRAM_BLOCK_WORDS) ? wordsRemaining : SRAM_BLOCK_WORDS;
         size_to_write = wordsWritten * sizeof(unsigned short);
@@ -779,10 +780,10 @@ unsigned long AIOUSB_ADC_SetCalTable(
                                               );
 
         if (libusbResult != LIBUSB_SUCCESS) {
-            retval = LIBUSB_RESULT_TO_AIOUSB_RESULT(libusbResult);
+            retval = -LIBUSB_RESULT_TO_AIOUSB_RESULT(libusbResult);
             break;
         } else if (bytesTransferred != size_to_write ) {
-            retval = AIOUSB_ERROR_INVALID_DATA;
+            retval = -AIOUSB_ERROR_INVALID_DATA;
             break;
         } else {
             bytesTransferred = usb->usb_control_transfer(usb,
@@ -795,7 +796,7 @@ unsigned long AIOUSB_ADC_SetCalTable(
                                                          deviceDesc->commTimeout
                                                          );
             if(bytesTransferred != 0) {
-                retval = LIBUSB_RESULT_TO_AIOUSB_RESULT(bytesTransferred);
+                retval = -LIBUSB_RESULT_TO_AIOUSB_RESULT(bytesTransferred);
                 break;
             }
         }
@@ -805,7 +806,7 @@ unsigned long AIOUSB_ADC_SetCalTable(
 
  out_AIOUSB_ADC_SetCalTable:
     AIOUSB_UnLock();
-    return (AIORESULT)retval;
+    return retval;
 }
 
 /*----------------------------------------------------------------------------*/

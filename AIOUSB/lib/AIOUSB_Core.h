@@ -149,11 +149,15 @@ PUBLIC_EXTERN unsigned long ADC_ResetDevice( unsigned long DeviceIndex  );
 PUBLIC_EXTERN AIORET_TYPE AIOUSB_GetDeviceSerialNumber( unsigned long DeviceIndex );
 
 
+
+
 #ifndef SWIG
 
 PUBLIC_EXTERN AIOUSB_BOOL AIOUSB_Lock(void);
 PUBLIC_EXTERN AIOUSB_BOOL AIOUSB_UnLock(void);
 
+PUBLIC_EXTERN AIORET_TYPE _check_mutex( AIORET_TYPE in );
+PUBLIC_EXTERN AIORET_TYPE _check_query_cal( AIORET_TYPE in, unsigned long DeviceIndex );
 
 PUBLIC_EXTERN unsigned long AIOUSB_InitTest(void);
 PUBLIC_EXTERN unsigned long AIOUSB_Validate_Lock(  unsigned long *DeviceIndex ) ;
@@ -182,8 +186,7 @@ PUBLIC_EXTERN unsigned long AIOUSB_SetMiscClock( unsigned long DeviceIndex, doub
 
 PUBLIC_EXTERN AIORET_TYPE AIOUSB_GetCommTimeout(unsigned long DeviceIndex );
 PUBLIC_EXTERN AIORET_TYPE AIOUSB_SetCommTimeout(unsigned long DeviceIndex,unsigned timeout );
-PUBLIC_EXTERN AIOUSB_BOOL AIOUSB_IsDiscardFirstSample(unsigned long DeviceIndex );
-PUBLIC_EXTERN unsigned long AIOUSB_SetDiscardFirstSample(unsigned long DeviceIndex,AIOUSB_BOOL discard );
+
 
 PUBLIC_EXTERN double AIOUSB_CountsToVolts(unsigned long DeviceIndex,unsigned channel,unsigned short counts );
 
@@ -206,13 +209,12 @@ PUBLIC_EXTERN AIORET_TYPE cull_and_average_counts( unsigned long DeviceIndex,
                                                    );
 
 PUBLIC_EXTERN unsigned long AIOUSB_GetScan( unsigned long DeviceIndex, unsigned short counts[] );
-PUBLIC_EXTERN unsigned long AIOUSB_ArrayCountsToVolts( unsigned long DeviceIndex, int startChannel,
-                                                        int numChannels, const unsigned short counts[], double volts[] );
-PUBLIC_EXTERN unsigned long AIOUSB_ArrayVoltsToCounts( unsigned long DeviceIndex, int startChannel,
-                                                        int numChannels, const double volts[], unsigned short counts[] );
+
+PUBLIC_EXTERN AIORET_TYPE AIOUSB_ArrayCountsToVolts( unsigned long DeviceIndex, int startChannel,int numChannels, const unsigned short counts[], double volts[] );
+PUBLIC_EXTERN AIORET_TYPE AIOUSB_ArrayVoltsToCounts( unsigned long DeviceIndex, int startChannel,int numChannels, const double volts[], unsigned short counts[] );
 
 
-PUBLIC_EXTERN unsigned long GenericVendorRead( unsigned long deviceIndex, unsigned char Request, unsigned short Value, unsigned short Index, void *bufData , unsigned long *bytes_read  );
+PUBLIC_EXTERN  unsigned long GenericVendorRead( unsigned long deviceIndex, unsigned char Request, unsigned short Value, unsigned short Index, void *bufData , unsigned long *bytes_read  );
 
 PUBLIC_EXTERN unsigned long GenericVendorWrite( unsigned long DeviceIndex, unsigned char Request, unsigned short Value, unsigned short Index, void *bufData, unsigned long *bytes_write );
 PUBLIC_EXTERN unsigned long AIOUSB_Validate_Device( unsigned long DeviceIndex );

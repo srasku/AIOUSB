@@ -3,6 +3,7 @@
 
 #include "AIOTypes.h"
 #include "ADCConfigBlock.h"
+#include "USBDevice.h"
 
 #ifdef __aiousb_cplusplus
 namespace AIOUSB
@@ -10,10 +11,11 @@ namespace AIOUSB
 #endif
 
 
-AIORET_TYPE WriteConfigBlock( AIOUSBDevice *device, ADCConfigBlock *config );
+AIORET_TYPE WriteConfigBlock( USBDevice *usb, ADCConfigBlock *config );
+AIORET_TYPE ReadConfigBlock( USBDevice *usb, ADCConfigBlock *config );
 
-PUBLIC_EXTERN unsigned ADC_GetOversample( unsigned long DeviceIndex );
-PUBLIC_EXTERN unsigned long ADC_SetOversample( unsigned long DeviceIndex, unsigned char Oversample );
+PUBLIC_EXTERN AIORET_TYPE ADC_GetOversample( unsigned long DeviceIndex );
+PUBLIC_EXTERN AIORET_TYPE ADC_SetOversample( unsigned long DeviceIndex, unsigned char Oversample );
 
 PUBLIC_EXTERN AIORESULT ADC_InitConfigBlock( ADCConfigBlock *, void *deviceDesc, unsigned int );
 
@@ -30,75 +32,75 @@ PUBLIC_EXTERN AIOUSB_BOOL ADC_GetTestingMode(ADCConfigBlock *config,
                                              AIOUSB_BOOL testing );
 
 
-PUBLIC_EXTERN unsigned long ADC_GetChannelV(
+PUBLIC_EXTERN AIORET_TYPE  ADC_GetChannelV(
                                             unsigned long DeviceIndex,
                                             unsigned long ChannelIndex,
                                             double *pBuf );
  
-PUBLIC_EXTERN unsigned long ADC_GetScanV(
+PUBLIC_EXTERN AIORET_TYPE ADC_GetScanV(
                                          unsigned long DeviceIndex,
                                          double *pBuf );
  
-PUBLIC_EXTERN unsigned ADC_SetAllGainCodeAndDiffMode( 
-                                                     unsigned long DeviceIndex, 
-                                                     unsigned gain, 
-                                                     AIOUSB_BOOL differentialMode ) __attribute__ ((deprecated("Please use ADCConfigBlockSetAllGainCodeAndDiffMode instead")));
+PUBLIC_EXTERN AIORET_TYPE ADC_SetAllGainCodeAndDiffMode( 
+                                                        unsigned long DeviceIndex, 
+                                                        unsigned gain, 
+                                                        AIOUSB_BOOL differentialMode ) __attribute__ ((deprecated("Please use ADCConfigBlockSetAllGainCodeAndDiffMode instead")));
 
-PUBLIC_EXTERN unsigned long ADC_GetScan(
+PUBLIC_EXTERN AIORET_TYPE ADC_GetScan(
                                          unsigned long DeviceIndex,
                                          unsigned short *pBuf );
  
-PUBLIC_EXTERN unsigned long ADC_GetConfig(
+PUBLIC_EXTERN AIORET_TYPE ADC_GetConfig(
                                           unsigned long DeviceIndex,
                                           unsigned char *pConfigBuf,
                                           unsigned long *ConfigBufSize );
  
-PUBLIC_EXTERN unsigned long ADC_SetConfig(
+PUBLIC_EXTERN AIORET_TYPE ADC_SetConfig(
                                           unsigned long DeviceIndex,
                                           unsigned char *pConfigBuf,
                                           unsigned long *ConfigBufSize );
 
-PUBLIC_EXTERN unsigned long ADC_RangeAll(
+PUBLIC_EXTERN AIORET_TYPE ADC_RangeAll(
                                          unsigned long DeviceIndex,
                                          unsigned char *pGainCodes,
                                          unsigned long bSingleEnded );
 
-PUBLIC_EXTERN unsigned long ADC_Range1(
+PUBLIC_EXTERN AIORET_TYPE ADC_Range1(
                                        unsigned long DeviceIndex,
                                        unsigned long ADChannel,
                                        unsigned char GainCode,
                                        unsigned long bSingleEnded );
  
-PUBLIC_EXTERN unsigned long ADC_ADMode(
+PUBLIC_EXTERN AIORET_TYPE ADC_ADMode(
                                        unsigned long DeviceIndex,
                                        unsigned char TriggerMode,
                                        unsigned char CalMode 
                                        );
  
-PUBLIC_EXTERN unsigned long ADC_SetScanLimits(
+PUBLIC_EXTERN AIORET_TYPE ADC_SetScanLimits(
                                               unsigned long DeviceIndex,
                                               unsigned long StartChannel,
                                               unsigned long EndChannel );
  
-PUBLIC_EXTERN unsigned long ADC_SetCal(
+PUBLIC_EXTERN AIORET_TYPE ADC_SetCal(
                                        unsigned long DeviceIndex,
                                        const char *CalFileName );
  
-PUBLIC_EXTERN unsigned long ADC_QueryCal(
+PUBLIC_EXTERN AIORET_TYPE ADC_QueryCal(
                                          unsigned long DeviceIndex );
  
-PUBLIC_EXTERN unsigned long ADC_Initialize(
+PUBLIC_EXTERN AIORET_TYPE ADC_Initialize(
                                            unsigned long DeviceIndex,
                                            unsigned char *pConfigBuf,
                                            unsigned long *ConfigBufSize,
                                            const char *CalFileName );
 
-PUBLIC_EXTERN unsigned long ADC_BulkAcquire(
+PUBLIC_EXTERN AIORET_TYPE ADC_BulkAcquire(
                                             unsigned long DeviceIndex,
                                             unsigned long BufSize,
                                             void *pBuf );
  
-PUBLIC_EXTERN unsigned long ADC_BulkPoll(
+PUBLIC_EXTERN AIORET_TYPE ADC_BulkPoll(
                                          unsigned long DeviceIndex,
                                          unsigned long *BytesLeft
                                          );
@@ -115,6 +117,8 @@ PUBLIC_EXTERN AIORET_TYPE  BulkPoll(
                                     );
 
 
+PUBLIC_EXTERN AIORET_TYPE AIOUSB_SetDiscardFirstSample(unsigned long DeviceIndex,AIOUSB_BOOL discard );
+
 
 PUBLIC_EXTERN unsigned char *ADC_GetADCConfigBlock_Registers(
                                                              ADCConfigBlock *config
@@ -123,20 +127,20 @@ PUBLIC_EXTERN unsigned char *ADC_GetADCConfigBlock_Registers(
 
 
 /* FastScan Functions */
-PUBLIC_EXTERN unsigned long ADC_InitFastITScanV( unsigned long DeviceIndex );
+PUBLIC_EXTERN AIORET_TYPE ADC_InitFastITScanV( unsigned long DeviceIndex );
 
-PUBLIC_EXTERN unsigned long ADC_CreateFastITConfig(
+PUBLIC_EXTERN AIORET_TYPE ADC_CreateFastITConfig(
                                                    unsigned long DeviceIndex,
                                                    int size
                                                    );
 
-PUBLIC_EXTERN unsigned long ADC_ResetFastITScanV(unsigned long DeviceIndex);
+PUBLIC_EXTERN AIORET_TYPE ADC_ResetFastITScanV(unsigned long DeviceIndex);
  
-PUBLIC_EXTERN unsigned long ADC_SetFastITScanVChannels(unsigned long DeviceIndex,unsigned long NewChannels);
+PUBLIC_EXTERN AIORET_TYPE ADC_SetFastITScanVChannels(unsigned long DeviceIndex,unsigned long NewChannels);
  
-PUBLIC_EXTERN unsigned long ADC_GetFastITScanV(unsigned long DeviceIndex,double *pData);
+PUBLIC_EXTERN AIORET_TYPE ADC_GetFastITScanV(unsigned long DeviceIndex,double *pData);
 
-PUBLIC_EXTERN unsigned long ADC_GetITScanV(unsigned long DeviceIndex,double *pBuf);
+PUBLIC_EXTERN AIORET_TYPE ADC_GetITScanV(unsigned long DeviceIndex,double *pBuf);
  
 
 PUBLIC_EXTERN AIORET_TYPE AIOUSB_InitConfigBlock( ADCConfigBlock *config, unsigned long DeviceIndex, AIOUSB_BOOL defaults );
@@ -145,13 +149,13 @@ PUBLIC_EXTERN void DeleteBuffer( AIOBuf *buf );
 PUBLIC_EXTERN AIOBuf *CreateSmartBuffer( unsigned long DeviceIndex );
 
 
-PUBLIC_EXTERN unsigned long AIOUSB_ADC_LoadCalTable(unsigned long DeviceIndex,const char *fileName );
-PUBLIC_EXTERN unsigned long AIOUSB_ADC_SetCalTable(unsigned long DeviceIndex,const unsigned short calTable[] );
-PUBLIC_EXTERN unsigned long AIOUSB_ADC_InternalCal(unsigned long DeviceIndex,AIOUSB_BOOL autoCal,unsigned short returnCalTable[],const char *saveFileName );
+PUBLIC_EXTERN AIORET_TYPE AIOUSB_ADC_LoadCalTable(unsigned long DeviceIndex,const char *fileName );
+PUBLIC_EXTERN AIORET_TYPE AIOUSB_ADC_SetCalTable(unsigned long DeviceIndex,const unsigned short calTable[] );
+PUBLIC_EXTERN AIORET_TYPE AIOUSB_ADC_InternalCal(unsigned long DeviceIndex,AIOUSB_BOOL autoCal,unsigned short returnCalTable[],const char *saveFileName );
 
 PUBLIC_EXTERN void AIOUSB_SetRegister(ADCConfigBlock *cb,unsigned int Register,unsigned char value );
 PUBLIC_EXTERN unsigned char AIOUSB_GetRegister( ADCConfigBlock *cb,unsigned int Register );
-PUBLIC_EXTERN unsigned long AIOUSB_ADC_ExternalCal(unsigned long DeviceIndex,const double points[],int numPoints,unsigned short returnCalTable[],const char *saveFileName );
+PUBLIC_EXTERN AIORET_TYPE AIOUSB_ADC_ExternalCal(unsigned long DeviceIndex,const double points[],int numPoints,unsigned short returnCalTable[],const char *saveFileName );
 
  
 /*

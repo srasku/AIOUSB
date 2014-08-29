@@ -28,14 +28,6 @@ namespace AIOUSB {
     } while (0 )
 
 
-static AIORET_TYPE _check_mutex( AIORET_TYPE in) {
-    if ( in != AIOUSB_SUCCESS )
-        return in;
-    if(!AIOUSB_Lock() ) 
-        return -AIOUSB_ERROR_INVALID_MUTEX;
-    return AIOUSB_SUCCESS;
-}
-
 static AIORET_TYPE _check_eeprom_data(AIORET_TYPE in,
                                unsigned long DeviceIndex,
                                unsigned long StartAddress,

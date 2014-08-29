@@ -255,6 +255,7 @@ int usb_control_transfer(struct aiousb_device *dev_handle,
                          uint8_t request_type, uint8_t bRequest, uint16_t wValue, uint16_t wIndex,
                          unsigned char *data, uint16_t wLength, unsigned int timeout)
 {
+    AIOUSB_UnLock();
     return libusb_control_transfer( get_usb_device( dev_handle ),
                                     request_type,
                                     bRequest,

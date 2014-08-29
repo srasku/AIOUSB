@@ -340,16 +340,23 @@ CREATE_ENUM_W_START( ResultCode, 0,
                      AIOUSB_ERROR_HANDLE_EOF,
                      AIOUSB_ERROR_DEVICE_NOT_FOUND,
                      AIOUSB_ERROR_USBDEVICE_NOT_FOUND,
+                     AIOUSB_ERROR_INVALID_TIMEOUT,
                      AIOUSB_ERROR_INVALID_USBDEVICE,
+                     AIOUSB_ERROR_INVALID_VOLTAGES,
+                     AIOUSB_ERROR_INVALID_COUNTS,
                      AIOUSB_ERROR_INVALID_DEVICE,
                      AIOUSB_ERROR_INVALID_DEVICE_SETTING,
                      AIOUSB_ERROR_INVALID_DEVICE_FUNCTIONAL_PARAMETER,
+                     AIOUSB_ERROR_INVALID_DEVICE_STREAM_SETTING,
+                     AIOUSB_ERROR_INVALID_DEVICE_CHANNEL_SETTING,
+                     AIOUSB_ERROR_INVALID_DEVICE_MUX_CHANNEL_SETTING,
                      AIOUSB_ERROR_INVALID_ADCCONFIG,
-                     AIOUSB_ERROR_INVALID_ADCONFIG_SETTING,
-                     AIOUSB_ERROR_INVALID_ADCONFIG_CAL_SETTING,
-                     AIOUSB_ERROR_INVALID_ADCONFIG_CHANNEL_SETTING,
-                     AIOUSB_ERROR_INVALID_ADCONFIG_OVERSAMPLE_SETTING,
-                     AIOUSB_ERROR_INVALID_ADCONFIG_REGISTER_SETTING,
+                     AIOUSB_ERROR_INVALID_ADCCONFIG_SETTING,
+                     AIOUSB_ERROR_INVALID_ADCCONFIG_TRIGGER_SETTING,
+                     AIOUSB_ERROR_INVALID_ADCCONFIG_CAL_SETTING,
+                     AIOUSB_ERROR_INVALID_ADCCONFIG_CHANNEL_SETTING,
+                     AIOUSB_ERROR_INVALID_ADCCONFIG_OVERSAMPLE_SETTING,
+                     AIOUSB_ERROR_INVALID_ADCCONFIG_REGISTER_SETTING,
                      AIOUSB_ERROR_INVALID_AIOCONTINUOUS_BUFFER,
                      AIOUSB_ERROR_LIBUSB /* Always make the LIBUSB the last element */
                      );
@@ -399,6 +406,10 @@ CREATE_ENUM_W_START( ADRegister, 16,
  */
 enum {
     AD_MAX_CONFIG_REGISTERS             = 21, /* maximum number of "registers" (bytes) in A/D config. block */
+    AD_MIN_CONFIG_REGISTERS             = 20,
+    AD_MAX_TIMEOUT                      = 8000,
+    AD_MIN_TIMEOUT                      = 500,
+
     AD_NUM_GAIN_CODE_REGISTERS          = 16, /* number of gain code registers in A/D config. block */
 
     /* A/D configuration block indexes */
