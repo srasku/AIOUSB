@@ -11,6 +11,8 @@
 #include <assert.h>
 #include <string.h>
 #include <AIOUSB_Core.h>
+#include "AIODeviceTable.h"
+#include "AIOUSBDevice.h"
 #include "aiousb.h"
 #include "USBDeviceManager.hpp"
 #include "AnalogInputSubsystem.hpp"
@@ -292,7 +294,12 @@ AnalogInputSubsystem &AnalogInputSubsystem::writeConfig() {
  */
 
 bool AnalogInputSubsystem::isDiscardFirstSample() const {
-	return AIOUSB_IsDiscardFirstSample( getDeviceIndex() );
+	// return AIOUSB_IsDiscardFirstSample( getDeviceIndex() );
+    AIORESULT result = AIOUSB_SUCCESS;
+    AIOUSBDevice *dev = AIODeviceTableGetDeviceAtIndex( getDeviceIndex() , &result );
+    if ( result != AIOUSB_SUCCESS )
+        throw OperationFailedException( result );
+    return ( AIOUSBDeviceGetDiscardFirstSample( dev ) > 0 ? true : false );
 }	// AnalogInputSubsystem::isDiscardFirstSample()
 
 
@@ -305,12 +312,19 @@ bool AnalogInputSubsystem::isDiscardFirstSample() const {
  * @return This subsystem, useful for chaining together multiple operations.
  * @throws OperationFailedException
  */
+ // const int result = AIOUSB_SetDiscardFirstSample( getDeviceIndex(), discard );
+AnalogInputSubsystem &AnalogInputSubsystem::setDiscardFirstSample( bool discard ) 
+{
+    AIORESULT result = AIOUSB_SUCCESS;
+    AIOUSBDevice *dev = AIODeviceTableGetDeviceAtIndex( getDeviceIndex() , &result );
+    if( result != AIOUSB_SUCCESS )
+        throw OperationFailedException( result );
+    
+    result = AIOUSBDeviceSetDiscardFirstSample( dev , discard );
+    if ( result != AIOUSB_SUCCESS )
+        throw OperationFailedException( result );
 
-AnalogInputSubsystem &AnalogInputSubsystem::setDiscardFirstSample( bool discard ) {
-	const int result = AIOUSB_SetDiscardFirstSample( getDeviceIndex(), discard );
-	if( result != AIOUSB_SUCCESS )
-		throw OperationFailedException( result );
-	return *this;
+    return *this;
 }	// AnalogInputSubsystem::setDiscardFirstSample()
 
 /**

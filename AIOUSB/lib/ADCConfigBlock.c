@@ -485,7 +485,6 @@ TEST(ADCConfigBlock,CopyConfigs )
     ADCConfigBlock from,to;
     AIOUSBDevice dev;
     AIORET_TYPE result;
-    /* AIOUSBDeviceInitialize( &dev ); */
 
     AIOUSBDeviceInitializeWithProductID( &dev, USB_AIO16_16A );
 

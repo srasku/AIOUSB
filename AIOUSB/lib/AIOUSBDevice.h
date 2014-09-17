@@ -110,6 +110,8 @@ AIORET_TYPE AIOUSBDeviceSetTesting( AIOUSBDevice *dev, AIOUSB_BOOL testing );
 AIORET_TYPE AIOUSBDeviceSize();
 AIORET_TYPE AIOUSBDeviceGetTesting( AIOUSBDevice *dev  );
 AIORET_TYPE AIOUSBDeviceGetStreamingBlockSize( AIOUSBDevice *deviceDesc );
+AIORET_TYPE AIOUSBDeviceGetDiscardFirstSample( AIOUSBDevice *device );
+AIORET_TYPE AIOUSBDeviceSetDiscardFirstSample( AIOUSBDevice *device , AIOUSB_BOOL discard );
 
 
 #ifdef __aiousb_cplusplus

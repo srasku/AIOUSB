@@ -168,6 +168,32 @@ USBDevice *AIOUSBDeviceGetUSBHandleFromDeviceIndex( unsigned long DeviceIndex, A
     return dh;
 }
 
+/*----------------------------------------------------------------------------*/
+AIORET_TYPE AIOUSBDeviceGetDiscardFirstSample( AIOUSBDevice *device )
+{
+    AIORET_TYPE retval = AIOUSB_SUCCESS;
+    assert( device );
+    if ( !device )
+        return -AIOUSB_ERROR_INVALID_DEVICE;
+
+    retval = (AIORET_TYPE)device->discardFirstSample;
+
+    return retval;
+}
+
+/*----------------------------------------------------------------------------*/
+AIORET_TYPE AIOUSBDeviceSetDiscardFirstSample( AIOUSBDevice *device , AIOUSB_BOOL discard )
+{
+    AIORET_TYPE retval = AIOUSB_SUCCESS;
+    assert( device );
+    if ( !device )
+        return -AIOUSB_ERROR_INVALID_DEVICE;
+
+    device->discardFirstSample = discard;
+
+    return retval;
+}
+
 
 #ifdef __cplusplus
 }
