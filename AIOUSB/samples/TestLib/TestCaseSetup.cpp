@@ -235,6 +235,7 @@ TestCaseSetup::doFastITScan( int numgets )
  
 }
 
+/*----------------------------------------------------------------------------*/
 /**
  * @desc Uploads a bulk configuration block
  * 
@@ -242,23 +243,20 @@ TestCaseSetup::doFastITScan( int numgets )
 void TestCaseSetup::doBulkConfigBlock()
 {
     ADCConfigBlock *config = AIOUSBDeviceGetADCConfigBlock( AIODeviceTableGetDeviceAtIndex( DeviceIndex, NULL ));
-
-    ADCConfigBlockInitialize( config );
+    AIORET_TYPE result = AIOUSB_SUCCESS;
+    AIOUSBDevice *device = AIODeviceTableGetDeviceAtIndex( DeviceIndex, (AIORESULT*)&result );
+    if ( result != AIOUSB_SUCCESS ) {
+        return;
+    }
+    
+    ADCConfigBlockInitialize( config , device );
     ADCConfigBlockSetAllGainCodeAndDiffMode( config, AD_GAIN_CODE_10V, AIOUSB_FALSE );
     ADCConfigBlockSetCalMode( config, AD_CAL_MODE_NORMAL );
     ADCConfigBlockSetTriggerMode( config, 0 );
     ADCConfigBlockSetScanRange( config, 2, 13 );
     ADCConfigBlockSetOversample( config, 0 );
 
-    // AIOUSB_InitConfigBlock( &configBlock, DeviceIndex, AIOUSB_FALSE );
-    // AIOUSB_SetAllGainCodeAndDiffMode( &configBlock, AD_GAIN_CODE_10V, AIOUSB_FALSE );
-    // AIOUSB_SetCalMode( &configBlock, AD_CAL_MODE_NORMAL );
-    // AIOUSB_SetTriggerMode( &configBlock, 0 );
-    // AIOUSB_SetScanRange( &configBlock, 2, 13 );
-    // AIOUSB_SetOversample( &configBlock, 0 );
-
-
-    int result = ADC_SetConfig( DeviceIndex, configBlock.registers, &configBlock.size );
+    result = ADC_SetConfig( DeviceIndex, config->registers, &config->size );
     if( result != AIOUSB_SUCCESS  ) {
         std::stringstream er;
         er << "Error '" << AIOUSB_GetResultCodeAsString( result ) << "' setting A/D configuration";
@@ -266,6 +264,7 @@ void TestCaseSetup::doBulkConfigBlock()
     }                  
 }
 
+/*----------------------------------------------------------------------------*/
 /** 
  * @desc Demonstrate bulk acquire
  * 
@@ -278,8 +277,7 @@ void TestCaseSetup::doBulkAcquire(void)
   doBulkAcquire( BLOCK_SIZE, OVER_SAMPLE, CLOCK_SPEED );
 }
 
-
-
+/*----------------------------------------------------------------------------*/
 /** 
  * @desc writes the bytes to a file in question. Will be binary
  *       unless the user specifies CSV as an argument
@@ -592,6 +590,7 @@ void TestCaseSetup::doDemonstrateReadVoltages()
   ADC_SetScanLimits( DeviceIndex, 0, NUM_CHANNELS - 1 );
   ADC_ADMode( DeviceIndex, 0 /* TriggerMode */, AD_CAL_MODE_NORMAL );
   result = ADC_GetScanV( DeviceIndex, volts );
+  // ADC_GetScan( DeviceIndex, volts );
   
   THROW_IF_ERROR( result, " performing A/D channel scan" );
 
@@ -616,6 +615,8 @@ void TestCaseSetup::doCSVReadVoltages()
   for( int channel = 0; channel < NUM_CHANNELS; channel++ )
       gainCodes[ channel ] = AD_GAIN_CODE_0_10V;
   gettimeofday( &reftime, 0 );
+
+  AIOUSB_UnLock();
 
   while( counter < maxvalue ) {
       result = ADC_GetScanV( DeviceIndex, volts );

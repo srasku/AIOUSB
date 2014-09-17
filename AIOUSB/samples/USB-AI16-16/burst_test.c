@@ -84,29 +84,29 @@ main(int argc, char *argv[] )
     /**
      * 1. Each buf should have a device index associated with it, so 
      */
-    AIOContinuousBuf_SetDeviceIndex( buf, 0 );
+    AIOContinuousBufSetDeviceIndex( buf, 0 );
 
     /**
      * 2. Setup the Config object for Acquisition, either the more complicated 
      *    part in comments (BELOW) or using a simple interface.
      */
     /* New simpler interface */
-    AIOContinuousBuf_InitConfiguration( buf );
+    AIOContinuousBufInitConfiguration( buf );
 
-    AIOContinuousBuf_SetOverSample( buf, 0 );
-    AIOContinuousBuf_SetStartAndEndChannel( buf, options.startchannel, options.endchannel );
+    AIOContinuousBufSetOverSample( buf, 0 );
+    AIOContinuousBufSetStartAndEndChannel( buf, options.startchannel, options.endchannel );
     if( !options.number_ranges ) { 
-        AIOContinuousBuf_SetAllGainCodeAndDiffMode( buf , options.gain_code , AIOUSB_FALSE );
+        AIOContinuousBufSetAllGainCodeAndDiffMode( buf , options.gain_code , AIOUSB_FALSE );
     } else {
         for ( int i = 0; i < options.number_ranges ; i ++ ) {
-            AIOContinuousBuf_SetChannelRangeGain( buf, 
-                                                  options.ranges[i]->startchannel, 
-                                                  options.ranges[i]->endchannel,
-                                                  options.ranges[i]->gaincode
-                                                  );
+            AIOContinuousBufSetChannelRange( buf, 
+                                             options.ranges[i]->startchannel, 
+                                             options.ranges[i]->endchannel,
+                                             options.ranges[i]->gaincode
+                                             );
         }
     }
-    AIOContinuousBuf_SaveConfig(buf);
+    AIOContinuousBufSaveConfig(buf);
     
     if ( retval < AIOUSB_SUCCESS ) {
         printf("Error setting up configuration\n");
@@ -168,9 +168,9 @@ main(int argc, char *argv[] )
       } else {
       /* unsigned short *tmpbuf = (unsigned short *)&tobuf[0]; */
         read_count += retval;
-          for( int i = 0, ch = 0 ; i < retval; i ++, ch = ((ch+1)% AIOContinuousBuf_NumberChannels(buf)) ) {
+          for( int i = 0, ch = 0 ; i < retval; i ++, ch = ((ch+1)% AIOContinuousBufNumberChannels(buf)) ) {
             fprintf(fp,"%u,",tobuf[i] );
-            if( (i+1) % AIOContinuousBuf_NumberChannels(buf) == 0 ) {
+            if( (i+1) % AIOContinuousBufNumberChannels(buf) == 0 ) {
               fprintf(fp,"\n");
             }
           }

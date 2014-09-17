@@ -25,39 +25,45 @@ struct options get_options(struct options *opts, int argc, char **argv );
 
 int main( int argc, char **argv ) {
 
-  unsigned long result = AIOUSB_Init();
-  int counter;
-  struct options opts = { 0, 0 , 16 };
-  opts = get_options(&opts,argc, argv);
+    AIORET_TYPE result = AIOUSB_Init();
+    int counter;
+    struct options opts = { 0, 0 , 16 };
+    opts = get_options(&opts,argc, argv);
+    
+    if( result == AIOUSB_SUCCESS ) {
+        
+        AIORET_TYPE deviceMask = GetDevices();
+        if( deviceMask != 0 ) {
+            // at least one ACCES device detected, but we want one of a specific type
+            // AIOUSB_ListDevices();
+            TestCaseSetup tcs( 0, opts.number_channels );
+            try { 
+                tcs.findDevice();
+                tcs.setCurrentDeviceIndex(0);
+                tcs.doPreSetup();
+                tcs.doBulkConfigBlock();
 
-  if( result == AIOUSB_SUCCESS ) {
-          
-    unsigned long deviceMask = GetDevices();
-    if( deviceMask != 0 ) {
-      // at least one ACCES device detected, but we want one of a specific type
-      // AIOUSB_ListDevices();
-      TestCaseSetup tcs( 0, opts.number_channels );
-      try { 
-        tcs.findDevice();
-        tcs.setCurrentDeviceIndex(0);
-        tcs.doPreSetup();
-        tcs.doBulkConfigBlock();
-        tcs.doSetAutoCalibration();
-        tcs.doVerifyGroundCalibration();
-        tcs.doVerifyReferenceCalibration();
-        tcs.doPreReadImmediateVoltages();
+                // tcs.doSetAutoCalibration();
+                tcs.doVerifyGroundCalibration();
+                // Good
+                tcs.doVerifyReferenceCalibration();
+                tcs.doPreReadImmediateVoltages();
+                // deviceTable[0].cachedConfigBlock.registers[18]  = 240;
+                // deviceTable[0].cachedConfigBlock.registers[19]  = 10;
+                // AIOUSB::WriteConfigBlock( &deviceTable[0], &deviceTable[0].cachedConfigBlock );
+                // AIOUSB::WriteConfigBlock( deviceTable[0].usb_device,  &deviceTable[0].cachedConfigBlock );
 
-        if( opts.use_maxcount ) 
-          tcs.maxcounts = opts.maxcount;
+                if( opts.use_maxcount ) 
+                    tcs.maxcounts = opts.maxcount;
 
-        tcs.doCSVReadVoltages();
-        usleep(0.1);
+                tcs.doCSVReadVoltages();
+                usleep(0.1);
 
-      } catch ( Error &e  ) {
-        std::cout << "Errors" << e.what() << std::endl;
-      }
+            } catch ( Error &e  ) {
+                std::cout << "Errors" << e.what() << std::endl;
+            }
+        }
     }
-  }
 }
 
 //

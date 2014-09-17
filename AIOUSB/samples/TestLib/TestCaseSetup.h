@@ -133,7 +133,7 @@ class TestCaseSetup {
   unsigned short *counts;
   double *volts;
   unsigned char *gainCodes;
-  ADConfigBlock configBlock;
+  ADCConfigBlock configBlock;
 
   unsigned int number_oversamples;
   unsigned int block_size;
