@@ -23,6 +23,24 @@ void DeleteAIOUSBDevice( AIOUSBDevice *dev)
 }
 
 /*----------------------------------------------------------------------------*/
+AIORET_TYPE AIOUSBDeviceInitializeWithProductID( AIOUSBDevice *device , ProductIDS productID )
+{
+    assert(device);
+    if ( !device ) 
+        return -AIOUSB_ERROR_INVALID_DEVICE;
+
+    device->usb_device    = NULL;
+    device->ProductID     = productID;
+    device->isInit        = AIOUSB_TRUE;
+    device->testing       = AIOUSB_FALSE;
+    _setup_device_parameters( device , productID );
+    ADCConfigBlockSetDevice( AIOUSBDeviceGetADCConfigBlock( device ), device );
+
+    return AIOUSB_SUCCESS;
+}
+
+
+/*----------------------------------------------------------------------------*/
 AIORET_TYPE _verify_device( AIOUSBDevice *dev ) 
 {
     AIORET_TYPE result = AIOUSB_SUCCESS;
@@ -55,6 +73,7 @@ AIORET_TYPE AIOUSBDeviceSetADCConfigBlock( AIOUSBDevice *dev, ADCConfigBlock *co
     return result;
 }
 
+/*----------------------------------------------------------------------------*/
 AIORET_TYPE AIOUSBDeviceSize() 
 {
     return sizeof(AIOUSBDevice);
@@ -86,6 +105,7 @@ AIORET_TYPE AIOUSBDeviceSetTesting( AIOUSBDevice *dev, AIOUSB_BOOL testing )
     return result;
 }
 
+/*----------------------------------------------------------------------------*/
 AIORET_TYPE AIOUSBDeviceGetStreamingBlockSize( AIOUSBDevice *dev )
 {
     AIORET_TYPE result = AIOUSB_SUCCESS;
@@ -161,18 +181,35 @@ USBDevice *AIOUSBDeviceGetUSBHandleFromDeviceIndex( unsigned long DeviceIndex, A
 #include "tap.h"
 using namespace AIOUSB;
 
+/**
+ * @todo Want the API to set the isInit flag in case the device is ever added
+ */
+TEST(Initialization,AddingDeviceSetsInit )
+{
+    AIOUSBDevice dev;
+    AIOUSBDeviceInitializeWithProductID( &dev , USB_AIO16_16A );
 
+    EXPECT_EQ( dev.ProductID, USB_AIO16_16A );
+
+    EXPECT_EQ( dev.isInit, AIOUSB_TRUE );
+}
 
 
 TEST(Initialization, SetDifferentConfigBlocks ) 
 {
     AIOUSBDevice *dev = NewAIOUSBDevice(0) ;
-    AIORESULT result;
+    AIORET_TYPE result;
     EXPECT_TRUE( dev );
     ADCConfigBlock *readconf = NULL;
     ADCConfigBlock *conf = (ADCConfigBlock*)calloc(sizeof(ADCConfigBlock),1);
-    AIOUSBDevice dev;
+
+    AIOUSBDeviceInitializeWithProductID( dev , USB_AIO16_16A );
+
     EXPECT_TRUE(conf);
+    ADCConfigBlockInitialize( conf, dev );
+    
+    EXPECT_GE( conf->size, AD_CONFIG_REGISTERS ) << "Should be initialized to correct value " << (int)AD_CONFIG_REGISTERS << "\n";
+
     memset(conf->registers,1,16);
 
     /* Note that ADCConfigBlock must be setup correctly, otherwise 
@@ -180,7 +217,7 @@ TEST(Initialization, SetDifferentConfigBlocks )
     result = AIOUSBDeviceSetADCConfigBlock( dev, conf );
     EXPECT_NE( result, AIOUSB_TRUE );
 
-    result = ADCConfigBlockInitialize( conf , &dev ); 
+    result = ADCConfigBlockInitialize( conf , dev ); 
     EXPECT_EQ( result, AIOUSB_SUCCESS );
 
     result = AIOUSBDeviceSetADCConfigBlock( dev, conf );
@@ -194,17 +231,6 @@ TEST(Initialization, SetDifferentConfigBlocks )
     DeleteAIOUSBDevice( dev );
 }
 
-/**
- * @todo Want the API to set the isInit flag in case the device is ever added
- */
-TEST(Initialization,AddingDeviceSetsInit )
-{
-
-    AIOUSBDevice *dev;
-    
-    
-
-}
 
 TEST(TestingFeatures, PropogateTesting ) 
 {

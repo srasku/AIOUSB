@@ -96,6 +96,7 @@ typedef struct aio_usb_driver {
     AIOUSB_BOOL valid;
 } AIOUSBDevice;
 
+AIORET_TYPE AIOUSBDeviceInitializeWithProductID( AIOUSBDevice *device , ProductIDS productID );
 USBDevice *AIOUSBDeviceGetUSBHandle( AIOUSBDevice *dev );
 USBDevice *AIOUSBDeviceGetUSBHandleFromDeviceIndex( unsigned long DeviceIndex, AIOUSBDevice **dev, AIORESULT *result );
 

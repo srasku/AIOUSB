@@ -1197,31 +1197,7 @@ int adcblock_valid_trigger_settings(ADCConfigBlock *config )
      return (config->registers[ AD_CONFIG_TRIG_COUNT ] & ~AD_TRIGGER_VALID_MASK ) == 0;
 }
 
-int adcblock_valid_channel_settings(ADCConfigBlock *config , int ADCMUXChannels )
-{
-     int result = 1;
-     int startChannel,endChannel;
 
-     for(int channel = 0; channel < AD_NUM_GAIN_CODE_REGISTERS; channel++) {
-          if(( config->registers[ AD_CONFIG_GAIN_CODE + channel ] & ~( unsigned char )(AD_DIFFERENTIAL_MODE | AD_GAIN_CODE_MASK)) != 0 ) {
-               return 0;
-          }
-     }
-
-     endChannel = ADCConfigBlockGetEndChannel( config );
-     if ( endChannel < 0 ) 
-         return -AIOUSB_ERROR_INVALID_ADCCONFIG_CHANNEL_SETTING;
-
-     startChannel = ADCConfigBlockGetStartChannel( config );
-     if ( endChannel < 0 ) 
-         return -AIOUSB_ERROR_INVALID_ADCCONFIG_CHANNEL_SETTING;
-
-     if( endChannel >= (int)ADCMUXChannels || startChannel > endChannel ) {
-          result = -AIOUSB_ERROR_INVALID_ADCCONFIG_CHANNEL_SETTING;
-     }
-
-     return result;
-}
 
 AIORET_TYPE valid_config_block( ADCConfigBlock *config )
 {
@@ -1234,6 +1210,7 @@ int adcblock_valid_size( ADCConfigBlock *config )
      return config->size > 0 && config->size <= AD_MAX_CONFIG_REGISTERS;
 }
 
+/*----------------------------------------------------------------------------*/
 /**
  * @param DeviceIndex
  * @param pConfigBuf
@@ -1246,68 +1223,76 @@ AIORET_TYPE ADC_SetConfig(
                             unsigned long *ConfigBufSize
                             )
 {
-    int endChannel;
-    if( pConfigBuf == NULL || ConfigBufSize == NULL )
-        return AIOUSB_ERROR_INVALID_PARAMETER;
-    
-    AIORESULT result = AIOUSB_SUCCESS;
-    AIOUSBDevice *deviceDesc = AIODeviceTableGetDeviceAtIndex( DeviceIndex, &result );
-    if ( result != AIOUSB_SUCCESS ) {
-        AIOUSB_UnLock();
-        return result;
-    }
-    USBDevice *usb = AIOUSBDeviceGetUSBHandle( deviceDesc );
-    if (!usb )
-        return AIOUSB_ERROR_USBDEVICE_NOT_FOUND;
-    
-    if(*ConfigBufSize < deviceDesc->ConfigBytes) {
-        *ConfigBufSize = deviceDesc->ConfigBytes;
-        AIOUSB_UnLock();
-        return AIOUSB_ERROR_INVALID_PARAMETER;
-    }
-    
+    AIORESULT retval = AIOUSB_SUCCESS;
+    AIOUSBDevice *deviceDesc = AIODeviceTableGetDeviceAtIndex( DeviceIndex, &retval );
     ADCConfigBlock configBlock = {0};
+    USBDevice *usb = AIOUSBDeviceGetUSBHandle( deviceDesc );
+    int endChannel;
+
+    if ( retval != AIOUSB_SUCCESS ) {
+        AIOUSB_UnLock();
+        return retval;
+    }
+
+    /* usb = AIOUSBDeviceGetUSBHandle( deviceDesc ); */
+    /* if (!usb ) { */
+    /*     retval = -AIOUSB_ERROR_USBDEVICE_NOT_FOUND; */
+    /*     goto out_ADC_SetConfig; */
+    /* } */
+
+    /* if( pConfigBuf == NULL || ConfigBufSize == NULL ) { */
+    /*     retval = -AIOUSB_ERROR_INVALID_PARAMETER; */
+    /*     goto out_ADC_SetConfig; */
+    /* } */
+
+    /* if(*ConfigBufSize < deviceDesc->ConfigBytes) { */
+    /*     *ConfigBufSize = deviceDesc->ConfigBytes; */
+    /*     retval = -AIOUSB_ERROR_INVALID_PARAMETER; */
+    /*     goto out_ADC_SetConfig; */
+    /* } */
+    
     configBlock.size = *ConfigBufSize;
+    configBlock.timeout = deviceDesc->commTimeout;
+    
     memcpy(configBlock.registers, pConfigBuf, configBlock.size);
+    
+    /* if( ! adcblock_valid_size( &configBlock ) ) { */
+    /*     retval = -AIOUSB_ERROR_INVALID_ADCCONFIG_CHANNEL_SETTING; */
+    /*     goto out_ADC_SetConfig; */
+    /* } */
 
-    /* configBlock.device = deviceDesc; */
-    /* configBlock.size   = deviceDesc->ConfigBytes; */
-    
-    if( ! adcblock_valid_size( &configBlock ) ) {
-        result = AIOUSB_ERROR_INVALID_ADCCONFIG_CHANNEL_SETTING;
-        goto out_ADC_SetConfig;
-    }
-    
-    if( !adcblock_valid_channel_settings( &configBlock , deviceDesc->ADCMUXChannels )  ) {
-        result = AIOUSB_ERROR_INVALID_ADCCONFIG_CHANNEL_SETTING;
-        goto out_ADC_SetConfig;
-    }
-    
+    /* if( !adcblock_valid_channel_settings( &configBlock , deviceDesc->ADCMUXChannels )  ) { */
+    /*     retval = -AIOUSB_ERROR_INVALID_ADCCONFIG_CHANNEL_SETTING; */
+    /*     goto out_ADC_SetConfig; */
+    /* } */
+
+    _adcblock_valid_channel_settings( retval, &configBlock , deviceDesc->ADCMUXChannels );
+
     if( !VALID_ENUM( ADCalMode , configBlock.registers[ AD_CONFIG_CAL_MODE ] ) ) {
-        result = AIOUSB_ERROR_INVALID_ADCCONFIG_CAL_SETTING;
+        retval = -AIOUSB_ERROR_INVALID_ADCCONFIG_CAL_SETTING;
         goto out_ADC_SetConfig;
     }
-    
-    if( !adcblock_valid_trigger_settings( &configBlock ) )  {
-        result = AIOUSB_ERROR_INVALID_ADCCONFIG_SETTING;
-        goto out_ADC_SetConfig;  
-    }
-    
-    endChannel = ADCConfigBlockGetEndChannel( &configBlock );
-    if( endChannel >= (int)deviceDesc->ADCMUXChannels || 
-        ADCConfigBlockGetStartChannel(&configBlock) > endChannel ) {
-        result = AIOUSB_ERROR_INVALID_PARAMETER;
-        goto out_ADC_SetConfig;
-    }
-    
-    result = WriteConfigBlock( usb, &configBlock );    
 
-    if(result == AIOUSB_SUCCESS)
+    /* if( !adcblock_valid_trigger_settings( &configBlock ) )  { */
+    /*     retval = -AIOUSB_ERROR_INVALID_ADCCONFIG_SETTING; */
+    /*     goto out_ADC_SetConfig;   */
+    /* } */
+
+    endChannel = ADCConfigBlockGetEndChannel( &configBlock );
+
+    if( endChannel >= (int)deviceDesc->ADCMUXChannels || ADCConfigBlockGetStartChannel(&configBlock) > endChannel ) {
+        retval = -AIOUSB_ERROR_INVALID_PARAMETER;
+        goto out_ADC_SetConfig;
+    }
+
+    retval = WriteConfigBlock( usb, &configBlock );    
+
+    if(retval == AIOUSB_SUCCESS)
         *ConfigBufSize = configBlock.size;
     
 out_ADC_SetConfig:
      AIOUSB_UnLock();
-     return result;
+     return retval;
 }
 
 /*----------------------------------------------------------------------------*/

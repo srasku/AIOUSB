@@ -1306,11 +1306,13 @@ AIORESULT AIODeviceTableAddDeviceToDeviceTableWithUSBDevice( int *numAccesDevice
 {
     AIORESULT result = AIOUSB_SUCCESS;
     AIOUSBDevice *device  = _get_device( *numAccesDevices , &result );
+
     device->usb_device    = usb_dev;
     device->ProductID     = productID;
     device->isInit        = AIOUSB_TRUE;
-    ADCConfigBlockSetDevice( AIOUSBDeviceGetADCConfigBlock( device ), device );
     _setup_device_parameters( device , productID );
+    ADCConfigBlockSetDevice( AIOUSBDeviceGetADCConfigBlock( device ), device );
+
     *numAccesDevices += 1;
     return result;
 }

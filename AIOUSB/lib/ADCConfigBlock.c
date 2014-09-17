@@ -6,6 +6,9 @@
 namespace AIOUSB {
 #endif
 
+
+
+
 /*----------------------------------------------------------------------------*/
 AIORET_TYPE ADCConfigBlockCopy( ADCConfigBlock *to, ADCConfigBlock *from ) 
 {
@@ -13,10 +16,12 @@ AIORET_TYPE ADCConfigBlockCopy( ADCConfigBlock *to, ADCConfigBlock *from )
     if ( from->size <  AD_CONFIG_REGISTERS )
         return -AIOUSB_ERROR_INVALID_PARAMETER;
     
-    to->device = from->device;
-    to->size = from->size ;
+    to->device   = from->device;
+    to->size     = from->size ;
+    to->testing  = from->testing;
+
     memcpy( to->registers, from->registers, AD_MAX_CONFIG_REGISTERS +1 );
-    to->testing = from->testing;
+
     return result;
 }
 
@@ -72,6 +77,36 @@ AIORET_TYPE ADCConfigBlockInitialize( ADCConfigBlock *config , AIOUSBDevice *dev
     memset(config->registers,0, AD_CONFIG_REGISTERS );
     return AIOUSB_SUCCESS;
 }
+
+int _adcblock_valid_channel_settings(AIORET_TYPE in, ADCConfigBlock *config , int ADCMUXChannels )
+{
+    if ( in != AIOUSB_SUCCESS ) 
+        return in;
+    
+    int result = 1;
+    int startChannel,endChannel;
+    
+    for(int channel = 0; channel < AD_NUM_GAIN_CODE_REGISTERS; channel++) {
+        if(( config->registers[ AD_CONFIG_GAIN_CODE + channel ] & ~( unsigned char )(AD_DIFFERENTIAL_MODE | AD_GAIN_CODE_MASK)) != 0 ) {
+            return 0;
+        }
+    }
+    
+    endChannel = ADCConfigBlockGetEndChannel( config );
+    if ( endChannel < 0 ) 
+        return -AIOUSB_ERROR_INVALID_ADCCONFIG_CHANNEL_SETTING;
+    
+    startChannel = ADCConfigBlockGetStartChannel( config );
+    if ( endChannel < 0 ) 
+        return -AIOUSB_ERROR_INVALID_ADCCONFIG_CHANNEL_SETTING;
+    
+    if( endChannel >= (int)ADCMUXChannels || startChannel > endChannel ) {
+        result = -AIOUSB_ERROR_INVALID_ADCCONFIG_CHANNEL_SETTING;
+    }
+    
+    return result;
+}
+
 
 /*----------------------------------------------------------------------------*/
 AIORET_TYPE ADCConfigBlockSetTesting( ADCConfigBlock *obj, AIOUSB_BOOL testing ) 
@@ -449,12 +484,21 @@ TEST(ADCConfigBlock,CopyConfigs )
 {
     ADCConfigBlock from,to;
     AIOUSBDevice dev;
+    AIORET_TYPE result;
+    /* AIOUSBDeviceInitialize( &dev ); */
+
+    AIOUSBDeviceInitializeWithProductID( &dev, USB_AIO16_16A );
+
+
     ADCConfigBlockInitialize( &from , &dev);
     ADCConfigBlockInitialize( &to , &dev );
    
     /* verify copying the test state */
     from.testing = AIOUSB_TRUE;
-    ADCConfigBlockCopy( &to, &from );
+    result  = ADCConfigBlockCopy( &to, &from );
+    
+    EXPECT_GE( result, AIOUSB_SUCCESS );
+    
     EXPECT_EQ( from.testing, to.testing );
 
     /* Change the register settings */
