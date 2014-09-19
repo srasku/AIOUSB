@@ -943,8 +943,8 @@ TEST(AIOUSB_Core,MockObjects) {
     AIODeviceTableAddDeviceToDeviceTable( &numDevices, USB_DIO_32 );
     EXPECT_EQ( numDevices, 2 );
 
-    EXPECT_EQ( ((DeviceDescriptor *)&deviceTable[0])->ProductID, USB_AIO16_16A  );
-    EXPECT_EQ( ((DeviceDescriptor *)&deviceTable[1])->ProductID, USB_DIO_32  );
+    EXPECT_EQ( ((AIOUSBDevice *)&deviceTable[0])->ProductID, USB_AIO16_16A  );
+    EXPECT_EQ( ((AIOUSBDevice *)&deviceTable[1])->ProductID, USB_DIO_32  );
 
 }
 

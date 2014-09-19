@@ -1384,8 +1384,9 @@ void CloseAllDevices(void)
         result = AIOUSB_SUCCESS;
         AIOUSBDevice *device = AIODeviceTableGetDeviceAtIndex( index, &result );
         if ( result == AIOUSB_SUCCESS )  {
-
-            USBDeviceClose( AIOUSBDeviceGetUSBHandle( device ) );
+            USBDevice *usb = AIOUSBDeviceGetUSBHandle( device );
+            if ( usb ) 
+                USBDeviceClose( usb );
             /* if(device->deviceHandle != NULL) { */
             /*     libusb_close(device->deviceHandle); */
             /*     device->deviceHandle = NULL; */
