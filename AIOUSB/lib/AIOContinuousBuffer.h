@@ -84,7 +84,7 @@ PUBLIC_EXTERN AIORET_TYPE AIOContinuousBufSetStartAndEndChannel( AIOContinuousBu
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBufSetAllGainCodeAndDiffMode( AIOContinuousBuf *buf, ADGainCode gain, AIOUSB_BOOL diff );
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBufGetDeviceIndex( AIOContinuousBuf *buf );
 
-PUBLIC_EXTERN unsigned AIOContinuousBufGetOverSample( AIOContinuousBuf *buf );
+PUBLIC_EXTERN AIORET_TYPE AIOContinuousBufGetOverSample( AIOContinuousBuf *buf );
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBufSetDiscardFirstSample(  AIOContinuousBuf *buf , AIOUSB_BOOL discard );
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBufNumberChannels( AIOContinuousBuf *buf );
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBufSetChannelMask( AIOContinuousBuf *buf, AIOChannelMask *mask );
@@ -105,7 +105,7 @@ PUBLIC_EXTERN AIORET_TYPE AIOContinuousBuf_SetAllGainCodeAndDiffMode( AIOContinu
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBuf_SetStartAndEndChannel( AIOContinuousBuf *buf, unsigned startChannel, unsigned endChannel ) __attribute__ ((deprecated("Please use AIOContinuousBufSetStartAndEndChannel")));
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBuf_GetDeviceIndex( AIOContinuousBuf *buf ) __attribute__ ((deprecated("Please use AIOContinuousBufGetDeviceIndex")));;
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBuf_SetChannelRangeGain( AIOContinuousBuf *buf, unsigned startChannel, unsigned endChannel , unsigned gainCode ) __attribute__((deprecated("Please use AIOContinuousBufSetChannelRange")));
-PUBLIC_EXTERN unsigned AIOContinuousBuf_GetOverSample( AIOContinuousBuf *buf ) __attribute__((deprecated("Please use AIOContinuousBufGetOverSample")));
+PUBLIC_EXTERN AIORET_TYPE AIOContinuousBuf_GetOverSample( AIOContinuousBuf *buf ) __attribute__((deprecated("Please use AIOContinuousBufGetOverSample")));
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBuf_SetOverSample( AIOContinuousBuf *buf, unsigned os ) __attribute__((deprecated("Please use AIOContinuousBufSetOverSample")));
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBuf_SetDiscardFirstSample(  AIOContinuousBuf *buf , AIOUSB_BOOL discard ) __attribute__((deprecated("Please use AIOContinuousBufSetDiscardFirstSample")));
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBuf_NumberChannels( AIOContinuousBuf *buf ) __attribute__((deprecated("Please use AIOContinuousBufNumberChannels")));

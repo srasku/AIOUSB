@@ -742,7 +742,7 @@ unsigned ADC_GetOversample_Cached( ADCConfigBlock *config )
 unsigned ADC_GainCode_Cached( ADCConfigBlock *config, unsigned channel)
 {
   assert(config);
-  DeviceDescriptor *deviceDesc = (DeviceDescriptor *)config->device;
+  AIOUSBDevice *deviceDesc = (AIOUSBDevice *)config->device;
   unsigned gainCode = (config->registers[ AD_CONFIG_GAIN_CODE + channel / deviceDesc->ADCChannelsPerGroup ] & ( unsigned char )AD_GAIN_CODE_MASK );
   return gainCode;
 }
@@ -2136,9 +2136,9 @@ void ADC_ClearFastITConfig(unsigned long DeviceIndex)
 
 
 /*----------------------------------------------------------------------------*/
-AIORET_TYPE ADC_CreateADBuf(DeviceDescriptor *const deviceDesc,
-                              int size
-                              )
+AIORET_TYPE ADC_CreateADBuf(AIOUSBDevice *const deviceDesc,
+                            int size
+                            )
 {
     deviceDesc->ADBuf = (unsigned char*)malloc(sizeof(unsigned char*) * size);
     if(!deviceDesc->ADBuf) {
@@ -2148,7 +2148,7 @@ AIORET_TYPE ADC_CreateADBuf(DeviceDescriptor *const deviceDesc,
     return AIOUSB_SUCCESS;
 }
 /*----------------------------------------------------------------------------*/
-void ADC_ClearADBuf(DeviceDescriptor *deviceDesc)
+void ADC_ClearADBuf(AIOUSBDevice *deviceDesc)
 {
     if(deviceDesc->ADBuf_size) {
           free(deviceDesc->ADBuf);
@@ -3042,7 +3042,7 @@ unsigned AIOUSB_GetGainCode(const ADCConfigBlock *config, unsigned channel)
     assert(config != 0);
     unsigned gainCode = FIRST_ENUM(ADGainCode);             // return reasonable value on error
     if( config != 0 && config->device != 0 &&   config->size != 0 ) { 
-        const DeviceDescriptor *const deviceDesc = ( DeviceDescriptor* )config->device;
+        const AIOUSBDevice *const deviceDesc = ( AIOUSBDevice* )config->device;
         if(channel < AD_MAX_CHANNELS && channel < deviceDesc->ADCMUXChannels) {
             assert(deviceDesc->ADCChannelsPerGroup != 0);
             gainCode = (config->registers[ AD_CONFIG_GAIN_CODE + channel / deviceDesc->ADCChannelsPerGroup ]
@@ -3070,7 +3070,7 @@ void AIOUSB_SetGainCode(ADCConfigBlock *config, unsigned channel, unsigned gainC
         VALID_ENUM(ADGainCode, gainCode) &&
         AIOUSB_Lock()
         ) {
-          const DeviceDescriptor *const deviceDesc = ( DeviceDescriptor* )config->device;
+          const AIOUSBDevice *const deviceDesc = ( AIOUSBDevice* )config->device;
           if(channel < AD_MAX_CHANNELS && channel < deviceDesc->ADCMUXChannels) {
                 assert(deviceDesc->ADCChannelsPerGroup != 0);
                 const int reg = AD_CONFIG_GAIN_CODE + channel / deviceDesc->ADCChannelsPerGroup;
@@ -3097,7 +3097,7 @@ AIOUSB_BOOL AIOUSB_IsDifferentialMode(const ADCConfigBlock *config, unsigned cha
         config->size != 0 &&
         AIOUSB_Lock()
         ) {
-          const DeviceDescriptor *const deviceDesc = ( DeviceDescriptor* )config->device;
+          const AIOUSBDevice *const deviceDesc = ( AIOUSBDevice* )config->device;
           if(
               channel < AD_MAX_CHANNELS &&
               channel < deviceDesc->ADCMUXChannels

@@ -687,15 +687,21 @@ AIORET_TYPE AIOContinuousBufCopyData( AIOContinuousBuf *buf , unsigned short *da
      AIORET_TYPE retval;
      unsigned tmpcount, channel = 0, pos = 0;
      unsigned stopval=0;
-     unsigned number_oversamples = AIOContinuousBufGetOverSample(buf)+1;
-     unsigned long DeviceIndex = AIOContinuousBufGetDeviceIndex( buf );
-     unsigned number_channels = AIOContinuousBufNumberChannels(buf);
+
+     AIORET_TYPE number_oversamples = AIOContinuousBufGetOverSample(buf)+1;
+     if ( number_oversamples < AIOUSB_SUCCESS )
+         return number_oversamples;
+
+     AIORET_TYPE number_channels = AIOContinuousBufNumberChannels(buf);
+     if ( number_channels < AIOUSB_SUCCESS )
+         return number_channels;
+
      AIOBufferType *tmpbuf = AIOContinuousBufCreateTmpBuf( buf, (*size / (AIOContinuousBufGetOverSample(buf) + 1)) + number_channels );
 
      int core_size = *size / number_oversamples;
      unsigned tmpsize = *size;
 
-     cull_and_average_counts( DeviceIndex, data, &tmpsize, AIOContinuousBufNumberChannels(buf) );
+     cull_and_average_counts( AIOContinuousBufGetDeviceIndex( buf ), data, &tmpsize, AIOContinuousBufNumberChannels(buf) );
      /**
       * @note
       * @verbatim
@@ -1558,7 +1564,6 @@ AIORET_TYPE AIOContinuousBufSetTesting( AIOContinuousBuf *buf, AIOUSB_BOOL testi
 }
 
 /*----------------------------------------------------------------------------*/
-
 AIORET_TYPE AIOContinuousBuf_SetDeviceIndex( AIOContinuousBuf *buf , unsigned long DeviceIndex ) { return AIOContinuousBufSetDeviceIndex( buf, DeviceIndex ); }
 AIORET_TYPE AIOContinuousBufSetDeviceIndex( AIOContinuousBuf *buf , unsigned long DeviceIndex )
 {
@@ -1579,14 +1584,12 @@ AIORET_TYPE AIOContinuousBufSaveConfig( AIOContinuousBuf *buf )
     return retval;
 }
 
-
+/*----------------------------------------------------------------------------*/
 AIORET_TYPE AIOContinuousBuf_SetStartAndEndChannel( AIOContinuousBuf *buf, 
                                                     unsigned startChannel, 
                                                     unsigned endChannel ) {
     return AIOContinuousBufSetStartAndEndChannel( buf, startChannel, endChannel );
 }
-
-/*----------------------------------------------------------------------------*/
 AIORET_TYPE AIOContinuousBufSetStartAndEndChannel( AIOContinuousBuf *buf, unsigned startChannel, unsigned endChannel )
 {
     AIORESULT result = AIOUSB_SUCCESS;
@@ -1602,6 +1605,7 @@ AIORET_TYPE AIOContinuousBufSetStartAndEndChannel( AIOContinuousBuf *buf, unsign
     return -(AIORET_TYPE)abs(ADCConfigBlockSetScanRange( AIOUSBDeviceGetADCConfigBlock( deviceDesc ) , startChannel, endChannel ));
 }
 
+/*----------------------------------------------------------------------------*/
 AIORET_TYPE AIOContinuousBuf_SetChannelRange( AIOContinuousBuf *buf, 
                                               unsigned startChannel, 
                                               unsigned endChannel , 
@@ -1628,7 +1632,7 @@ AIORET_TYPE AIOContinuousBufSetChannelRange( AIOContinuousBuf *buf,
     return result;
 }
 
-
+/*----------------------------------------------------------------------------*/
 AIORET_TYPE AIOContinuousBuf_SetOverSample( AIOContinuousBuf *buf, unsigned os ) { return AIOContinuousBufSetOverSample(buf,os);}
 AIORET_TYPE AIOContinuousBufSetOverSample( AIOContinuousBuf *buf, unsigned os )
 {
@@ -1645,12 +1649,18 @@ AIORET_TYPE AIOContinuousBufSetOverSample( AIOContinuousBuf *buf, unsigned os )
     return result;
 }
 
+/*------------------------------------------------------------------------*/
+AIORET_TYPE AIOContinuousBuf_GetOverSample( AIOContinuousBuf *buf ) { return AIOContinuousBufGetOverSample( buf ); }
+AIORET_TYPE AIOContinuousBufGetOverSample( AIOContinuousBuf *buf ) {
+    AIORESULT result = AIOUSB_SUCCESS;
+    AIOUSBDevice *device = AIODeviceTableGetDeviceAtIndex( AIOContinuousBufGetDeviceIndex(buf), &result );
+    if ( result != AIOUSB_SUCCESS )
+        return -result;
 
-unsigned AIOContinuousBuf_GetOverSample( AIOContinuousBuf *buf ) { return AIOContinuousBufGetOverSample( buf ); }
-unsigned AIOContinuousBufGetOverSample( AIOContinuousBuf *buf ) {
-    return ADC_GetOversample( AIOContinuousBufGetDeviceIndex(buf) );
+    return ADCConfigBlockGetOversample( AIOUSBDeviceGetADCConfigBlock( device ) );
 }
 
+/*------------------------------------------------------------------------*/
 AIORET_TYPE AIOContinuousBuf_SetAllGainCodeAndDiffMode( AIOContinuousBuf *buf, ADGainCode gain, AIOUSB_BOOL diff ) {
     return AIOContinuousBufSetAllGainCodeAndDiffMode( buf, gain, diff );
 }
@@ -2440,6 +2450,7 @@ TEST(AIOContinuousBuf,PopulateBuffer)
     int actual_bufsize = 10;
     int oversample = 255;
     AIORET_TYPE retval = -2;
+    int prev_write_pos;
 
     buf = NewAIOContinuousBufTesting( 0, actual_bufsize , buf_unit , AIOUSB_FALSE );
     AIOContinuousBufCreateTmpBuf(buf, 100 );
@@ -2479,9 +2490,11 @@ TEST(AIOContinuousBuf,PopulateBuffer)
         AIOContinuousBufSetDiscardFirstSample( buf, 0 );
         datatransferred = 0;
 
+        prev_write_pos = get_write_pos(buf);
         while ( count < repeat_count ) {
             read_data(data, tmpsize );          /* Load data with repeating data */
             retval = AIOContinuousBufCopyData( buf, data , &tmpsize );
+            EXPECT_NE( prev_write_pos, get_write_pos(buf));
             datatransferred += retval;
             EXPECT_GE( retval, 0 ) << "Channel_list=" << channel_list[i] << " Received retval: " << (int)retval << std::endl;
             count ++; 
