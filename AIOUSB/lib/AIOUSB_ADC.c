@@ -241,29 +241,6 @@ AIOUSB_BOOL ADC_GetTestingMode(ADCConfigBlock *config, AIOUSB_BOOL testing )
 }
 
 /*----------------------------------------------------------------------------*/
-/* AIORET_TYPE ADC_WriteADCConfigBlock( unsigned long DeviceIndex , ADCConfigBlock *config ) */
-/* { */
-/*     unsigned long result; */
-/*     AIORET_TYPE retval; */
-/*     DeviceDescriptor *deviceDesc = AIOUSB_GetDevice_Lock( DeviceIndex, &result ); */
-/*     if ( !deviceDesc || result != AIOUSB_SUCCESS )  { */
-/*         retval = -result; */
-/*         goto out_ADC_WriteADCConfigBlock; */
-/*     } */
-/*     result = GenericVendorWrite( DeviceIndex ,  */
-/*                                  AUR_ADC_SET_CONFIG, */
-/*                                  0, */
-/*                                  0,  */
-/*                                  config->registers, */
-/*                                  config->size */
-/*                                  ); */
-/*     retval = ( result  == AIOUSB_SUCCESS ? AIOUSB_SUCCESS : - result ); */
-/* out_ADC_WriteADCConfigBlock: */
-/*     AIOUSB_UnLock(); */
-/*     return retval; */
-/* } */
-
-/*----------------------------------------------------------------------------*/
 AIORET_TYPE ADC_ReadADCConfigBlock( unsigned long DeviceIndex , ADCConfigBlock *config )
 {
     AIORESULT result = AIOUSB_SUCCESS;
@@ -446,32 +423,31 @@ AIORESULT ADC_Acquire_Reference_Counts(
 
                 averageCounts = countsSum / ( double )AVERAGE_SAMPLES;
 
-                if(reading == 0) {
+                if (reading == 0) {
                       if(averageCounts <= MAX_GROUND)
                           *groundCounts = averageCounts;
                       else{
                             result = AIOUSB_ERROR_INVALID_DATA;
                             goto RETURN_AIOUSB_GetBulkAcquire;
                         }
-                  }else {
-                      if(
-                          averageCounts >= MIN_REFERENCE &&
-                          averageCounts <= AI_16_MAX_COUNTS
-                          )
-                          *referenceCounts = averageCounts;
-                      else{
-                            result = AIOUSB_ERROR_INVALID_DATA;
-                            goto RETURN_AIOUSB_GetBulkAcquire;
-                        }
-                  }
+                } else {
+                    if(
+                       averageCounts >= MIN_REFERENCE &&
+                       averageCounts <= AI_16_MAX_COUNTS
+                       )
+                        *referenceCounts = averageCounts;
+                    else{
+                        result = AIOUSB_ERROR_INVALID_DATA;
+                        goto RETURN_AIOUSB_GetBulkAcquire;
+                    }
+                }
             }
       }
 RETURN_AIOUSB_GetBulkAcquire:
     return result;
 }
 
-
-
+/*----------------------------------------------------------------------------*/
 /**
  * @brief Performs a scan and averages the voltage values.
  * @param DeviceIndex
@@ -525,24 +501,20 @@ PRIVATE AIORESULT AIOUSB_GetScan(
     int numChannels = endChannel - startChannel + 1;
     
     /**
-     * in theory, all the A/D functions, including
-     * AIOUSB_GetScan(), should work in all measurement
-     * modes, including calibration mode; in practice,
-     * however, the device will return only a single
-     * sample in calibration mode; therefore, users must
-     * be careful to select a single channel and set
-     * oversample to zero during calibration mode;
-     * attempting to read more than one channel or use an
-     * oversample setting of more than zero in calibration
-     * mode will result in a timeout error; as a
-     * convenience to the user we automatically impose
-     * this restriction here in AIOUSB_GetScan(); if the
-     * device is changed to permit normal use of the A/D
-     * functions in calibration mode, we will have to
-     * modify this function to somehow recognize which
-     * devices support that capability, or simply delete
-     * this restriction altogether and rely on the users'
-     * good judgment
+     * in theory, all the A/D functions, including AIOUSB_GetScan(),
+     * should work in all measurement modes, including calibration
+     * mode; in practice, however, the device will return only a
+     * single sample in calibration mode; therefore, users must be
+     * careful to select a single channel and set oversample to zero
+     * during calibration mode; attempting to read more than one
+     * channel or use an oversample setting of more than zero in
+     * calibration mode will result in a timeout error; as a
+     * convenience to the user we automatically impose this
+     * restriction here in AIOUSB_GetScan(); if the device is changed
+     * to permit normal use of the A/D functions in calibration mode,
+     * we will have to modify this function to somehow recognize which
+     * devices support that capability, or simply delete this
+     * restriction altogether and rely on the users' good judgment
      */
 
     int calMode = ADCConfigBlockGetCalMode( origConfigBlock );
@@ -646,7 +618,6 @@ PRIVATE AIORESULT AIOUSB_GetScan(
         if(bytesTransferred == 0) {
 
             /* request AUR_ADC_IMMEDIATE triggers the sampling of data */
-
             bytesTransferred = usb->usb_control_transfer(usb,
                                                          USB_READ_FROM_DEVICE, 
                                                          AUR_ADC_IMMEDIATE,
@@ -658,13 +629,7 @@ PRIVATE AIORESULT AIOUSB_GetScan(
                                                          );
 
             if (bytesTransferred == sizeof(unsigned short) ) {
-                /* int libusbResult = AIOUSB_BulkTransfer(deviceHandle, */
-                /*                                        LIBUSB_ENDPOINT_IN | USB_BULK_READ_ENDPOINT, */
-                /*                                        ( unsigned char* )sampleBuffer,  */
-                /*                                        numBytes,  */
-                /*                                        &bytesTransferred, */
-                /*                                        deviceDesc->commTimeout */
-                /*                                        ); */
+
                 libusbResult = usb->usb_bulk_transfer( usb,
                                                        LIBUSB_ENDPOINT_IN | USB_BULK_READ_ENDPOINT,
                                                        ( unsigned char* )sampleBuffer,
@@ -813,6 +778,7 @@ AIORET_TYPE cull_and_average_counts( unsigned long DeviceIndex,
     return (AIORET_TYPE)pos;
 }
 
+/*----------------------------------------------------------------------------*/
 /**
  * @brief
  * @param DeviceIndex
@@ -857,21 +823,6 @@ PRIVATE AIORET_TYPE  AIOUSB_ArrayCountsToVolts(
      AIOUSB_UnLock();
      return retval;
 }
-
-/* if ( retval != AIOUSB_SUCCESS ) { */
-/*     return -retval; */
-/* } */
-/* if ( !usb  )  */
-/*     return AIOUSB_ERROR_USBDEVICE_NOT_FOUND; */
-/* if( startChannel < 0 || */
-/*     numChannels < 0 || */
-/*     startChannel + numChannels > ( int )deviceDesc->ADCMUXChannels || */
-/*     counts == NULL || */
-/*     volts == NULL */
-/*     ) { */
-/*     AIOUSB_UnLock(); */
-/*     return AIOUSB_ERROR_INVALID_PARAMETER; */
-/*  } */
 
 /*----------------------------------------------------------------------------*/
 /**
@@ -2395,131 +2346,7 @@ void ADC_Debug_Register_Settings(ADCConfigBlock *config)
 
     printf("Channels:\tstart=%d, end=%d\n", config->registers[AD_CONFIG_START_END] & 0xF, config->registers[AD_CONFIG_START_END] >> 4);
 }
-/*----------------------------------------------------------------------------*/
-/**
- * @verbatim
- * ---
- * config:
- *   channels:
- *   - gain: 0-10V
- *   - gain: 0-10V
- *   - gain: 0-10V
- *   - gain: 0-10V
- *   - gain: 0-10V
- *   - gain: 0-10V
- *   - gain: 0-10V
- *   - gain: 0-10V
- *   - gain: 0-10V
- *   - gain: 0-10V
- *   - gain: 0-10V
- *   - gain: 0-10V
- *   - gain: 0-10V
- *   - gain: 0-10V
- *   - gain: 0-10V
- *   - gain: 0-10V
- *   - gain: 0-10V
- *   calibration: Normal
- *   trigger:
- *     edge: falling edge
- *     scan: all channels
- *     type: external
- * @endverbatim
- */
-char * ADCConfigBlockToYAML(ADCConfigBlock *config)
-{
-    int i;
-    char tmpbuf[2048] = {0};
-    char tbuf[5];
-    strcat(tmpbuf,"---\nconfig:\n");
-    strcat(tmpbuf,"  channels:\n");
-    for(i = 0; i <= 15; i++) {
-        strcat(tmpbuf,"  - gain: ");
-        switch(config->registers[i]) {
-            case FIRST_ENUM(ADGainCode):
-                strcat(tmpbuf, "0-10V\n");
-                break;
-            case AD_GAIN_CODE_10V:
-                strcat(tmpbuf, "+/-10V\n");
-                break;
-            case AD_GAIN_CODE_0_5V:
-                strcat(tmpbuf, "0-5V\n");
-                break;
-            case AD_GAIN_CODE_5V:
-                strcat(tmpbuf, "+/-5V\n");
-                break;
-            case AD_GAIN_CODE_0_2V:
-                strcat(tmpbuf, "0-2V\n");
-                break;
-            case AD_GAIN_CODE_2V:
-                strcat(tmpbuf, "+/-2V\n");
-                break;
-            case AD_GAIN_CODE_0_1V:
-                strcat(tmpbuf, "0-1V\n");
-                break;
-            case AD_GAIN_CODE_1V:
-                strcat(tmpbuf, "+/-1V\n");
-                break;
-            default:
-                strcat(tmpbuf, "Unknown\n");
-        }
-    }
 
-    strcat(tmpbuf,"  calibration: ");
-    switch (config->registers[AD_REGISTER_CAL_MODE] ) {
-      case AD_CAL_MODE_NORMAL:
-          strcat(tmpbuf,"Normal\n");
-          break;
-
-      case AD_CAL_MODE_GROUND:
-          strcat(tmpbuf,"Ground\n");
-          break;
-
-      case AD_CAL_MODE_REFERENCE:
-          strcat(tmpbuf, "Reference\n");
-          break;
-
-      case AD_CAL_MODE_BIP_GROUND:
-          strcat(tmpbuf,"BIP Reference\n");
-          break;
-
-      default:
-          strcat(tmpbuf, "Unknown\n");
-      }
-
-    strcat(tmpbuf, "  trigger: ");
-    if (config->registers[AD_REGISTER_TRIG_COUNT] & AD_TRIGGER_CTR0_EXT) {
-        strcat(tmpbuf, "counter ");
-    } else {
-        strcat(tmpbuf, "external ");
-    }
-    if (config->registers[AD_REGISTER_TRIG_COUNT] & AD_TRIGGER_FALLING_EDGE) {
-        strcat(tmpbuf, "falling edge");
-    } else {
-        strcat( tmpbuf, "rising edge" );
-    }
-
-    if (config->registers[AD_REGISTER_TRIG_COUNT] & AD_TRIGGER_SCAN) {
-        strcat(tmpbuf, "all channels");
-    } else {
-        strcat(tmpbuf, "single channel");
-    }
-    strcat(tmpbuf,"    type: ");
-    if (config->registers[AD_REGISTER_TRIG_COUNT] & AD_TRIGGER_EXTERNAL) {
-        strcat(tmpbuf,"external\n");
-    } else if (config->registers[AD_REGISTER_TRIG_COUNT] & AD_TRIGGER_TIMER) {
-        strcat(tmpbuf,"counter\n");
-    } else {
-        strcat(tmpbuf,"sw\n");
-    }
-    strcat(tmpbuf,  "start_channel: ");
-    sprintf(tbuf,"%d\n", config->registers[AD_CONFIG_START_END] & 0xF );
-    strcat(tmpbuf, tbuf );
-    strcat(tmpbuf,  "end_channel: ");
-    sprintf(tbuf,"%d\n", config->registers[AD_CONFIG_START_END] >> 4 );
-    strcat(tmpbuf, tbuf );
-
-    return strdup(tbuf);
-}
 /*----------------------------------------------------------------------------*/
 /**
  * @param DeviceIndex

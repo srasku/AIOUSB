@@ -2077,10 +2077,6 @@ void stress_test_drain_buffer( int bufsize )
     int oversample = 255;
     AIORET_TYPE retval = -2;
 
-    buf = NewAIOContinuousBufTesting( 0, actual_bufsize , buf_unit , AIOUSB_FALSE );
-    AIOContinuousBufCreateTmpBuf(buf, 100 );
-    DeleteAIOContinuousBuf(buf);
-
     dummy_init();
     for( i = 0 ; i < sizeof(channel_list)/sizeof(int); i ++ ) {
         count = 0;
@@ -2423,15 +2419,21 @@ class AIOContinuousBufSetup : public ::testing::Test
     unsigned short *data;
 };
 
+TEST(AIOContinuousBuf,CleanupMemory)
+{
+    int actual_bufsize = 10, buf_unit = 10;
+    AIOContinuousBuf *buf = NewAIOContinuousBufTesting( 0, actual_bufsize , buf_unit , AIOUSB_FALSE );
+    AIOContinuousBufCreateTmpBuf(buf, 100 );
+    DeleteAIOContinuousBuf(buf);
+}
+
 TEST(AIOContinuousBuf,PopulateBuffer)
 {
     AIOContinuousBuf *buf;
-    unsigned extra = 0;
-    int core_size = 256;
+    int i, count = 0, buf_unit = 10, databuf_size, datatransferred = 0, actual_bufsize = 10, oversample = 255;
+    int core_size = 256, prev, repeat_count = 20, prev_write_pos;
     int channel_list[] = { 9,19, 3, 5, 7, 9 ,11,31, 37 , 127};
     int oversamples[]  = {255};
-    int prev;
-    int repeat_count = 20;
     int expected_list[] = { (core_size*20)%channel_list[0], 
                             (core_size*20)%channel_list[1],
                             (core_size*20)%channel_list[2],
@@ -2442,19 +2444,8 @@ TEST(AIOContinuousBuf,PopulateBuffer)
                             (core_size*20)%channel_list[7],
                             (core_size*20)%channel_list[8],
                             (core_size*20)%channel_list[9]};
-
-    int i, count = 0, buf_unit = 10;
     unsigned tmpsize;
-    int databuf_size;
-    int datatransferred = 0;
-    int actual_bufsize = 10;
-    int oversample = 255;
     AIORET_TYPE retval = -2;
-    int prev_write_pos;
-
-    buf = NewAIOContinuousBufTesting( 0, actual_bufsize , buf_unit , AIOUSB_FALSE );
-    AIOContinuousBufCreateTmpBuf(buf, 100 );
-    DeleteAIOContinuousBuf(buf);
 
     dummy_init();
     for( i = 0 ; i < sizeof(channel_list)/sizeof(int); i ++ ) {
@@ -2476,8 +2467,6 @@ TEST(AIOContinuousBuf,PopulateBuffer)
         buf = NewAIOContinuousBufTesting( 0, actual_bufsize , buf_unit , AIOUSB_FALSE );
 
         AIORESULT result;
-        /**
-         */
 
         AIODeviceTableGetDeviceAtIndex( 0, &result )->testing = true;
         AIOUSBDeviceGetADCConfigBlock( AIODeviceTableGetDeviceAtIndex( 0, &result ) )->testing = true;
@@ -2499,22 +2488,11 @@ TEST(AIOContinuousBuf,PopulateBuffer)
             EXPECT_GE( retval, 0 ) << "Channel_list=" << channel_list[i] << " Received retval: " << (int)retval << std::endl;
             count ++; 
         }
+
         /* Check that the remainders are correct */
         EXPECT_EQ( expected_list[i] , buf->extra );
-        /* printf("%s - Ch=%d 1st Remain=%d, expected=%d\n", ( buf->extra == expected_list[i] ? "ok" : "not ok" ), */
-        /*        channel_list[i],  */
-        /*        (int)buf->extra,  */
-        /*        expected_list[i] ); */
-        /* printf("%s - Ch=%d 1st Bufwrite=%d expected=%d\n",( datatransferred == get_write_pos(buf) ? "ok" : "not ok" ),  */
-        /*        channel_list[i],   */
-        /*        (int)datatransferred,  */
-        /*        get_write_pos(buf) */
-        /*        ); */
         EXPECT_EQ( get_write_pos(buf) , datatransferred  );
 
-        /* printf("%s - Ch=%d 1st Avgd=%f expected=%f\n",  ( roundf(1000*buf->buffer[get_read_pos(buf)]) == roundf(1000*(data[0] / 65538.0)*5.0) ? "ok" : "not ok" ), */
-        /*        channel_list[i], */
-        /*        buf->buffer[get_read_pos(buf)], (data[0] / 65538.0)*5.0); */
         EXPECT_EQ( roundf(1000*(data[0] / 65538.0)*5.0) , roundf(1000*buf->buffer[get_read_pos(buf)]) );
 
         /* Drain the buffer */
@@ -2523,10 +2501,6 @@ TEST(AIOContinuousBuf,PopulateBuffer)
             datatransferred += AIOContinuousBufRead( buf, (AIOBufferType *)data, tmpsize, tmpsize );
         }
         EXPECT_EQ( get_read_pos(buf), datatransferred );
-        /* printf("%s - Ch=%d 1st Bufread=%d expected=%d\n", ( datatransferred == get_read_pos(buf) ? "ok" : "not ok" ),  */
-        /*        channel_list[i], */
-        /*        (int)datatransferred,  */
-        /*        get_read_pos(buf)); */
     
         count = 0;
         while ( count < repeat_count ) {

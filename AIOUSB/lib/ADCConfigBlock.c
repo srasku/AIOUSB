@@ -293,7 +293,7 @@ AIORET_TYPE ADCConfigBlockSetGainCode(ADCConfigBlock *config, unsigned channel, 
 
     if (channel < AD_MAX_CHANNELS && channel < deviceDesc->ADCMUXChannels) {
         int reg = AD_CONFIG_GAIN_CODE + channel / deviceDesc->ADCChannelsPerGroup;
-        if ( reg < AD_NUM_GAIN_CODES )
+        if ( reg > AD_NUM_GAIN_CODES )
             return -AIOUSB_ERROR_INVALID_ADCCONFIG_REGISTER_SETTING;
 
         config->registers[ reg ] = (config->registers[ reg ] & 
@@ -466,11 +466,246 @@ AIORET_TYPE ADCConfigBlockSetDifferentialMode(ADCConfigBlock *config, unsigned c
     return retval;
 }
 
+
+
+const char *get_gain_code( int code )
+{
+    switch( code ) {
+    case FIRST_ENUM(ADGainCode):
+        return "0-10V";
+    case AD_GAIN_CODE_10V:
+        return "+/-10V";
+    case AD_GAIN_CODE_0_5V:
+        return "0-5V";
+    case AD_GAIN_CODE_5V:
+        return "+/-5V";
+    case AD_GAIN_CODE_0_2V:
+        return "0-2V";
+    case AD_GAIN_CODE_2V:
+        return "+/-2V";
+    case AD_GAIN_CODE_0_1V:
+        return "0-1V";
+    case AD_GAIN_CODE_1V:
+        return "+/-1V";
+    default:
+        return "Unknown";
+    }
+}
+
+const char *get_cal_mode( int code )
+{
+    switch ( code ) {
+    case AD_CAL_MODE_NORMAL:
+        return "Normal";
+    case AD_CAL_MODE_GROUND:
+        return "Ground";
+    case AD_CAL_MODE_REFERENCE:
+        return "Reference";
+    case AD_CAL_MODE_BIP_GROUND:
+        return "BIP Reference";
+    default:
+        return "Unknown";
+    }
+}
+
+/*----------------------------------------------------------------------------*/
+const char *get_trigger_mode( int code )
+{
+   if (code & AD_TRIGGER_CTR0_EXT) {
+       return "external";
+   } else if (code & AD_TRIGGER_TIMER) {
+       return "counter";
+   } else {
+       return "sw";
+   }
+}
+
+const char *get_edge_mode(int code)
+{
+    if ( code & AD_TRIGGER_FALLING_EDGE) {
+        return "falling-edge";
+    } else {
+        return "rising-edge";
+    }
+}
+
+const char *get_scan_mode(int code)
+{
+  if ( code & AD_TRIGGER_SCAN) {
+      return "all channels";
+   } else {
+      return "single-channel";
+  }
+  
+}
+
+#define CALIBRATION_STRING "calibration"
+#define TRIGGER_STRING "trigger"
+#define REFERENCE_STRING "reference"
+#define EDGE_STRING "edge"
+#define REFCHANNEL_STRING "refchannel"
+#define STARTCHANNEL_STRING "start_channel"
+#define ENDCHANNEL_STRING "end_channel"
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @verbatim
+ * ---
+ * config:
+ *   channels:
+ *   - gain: 0-10V
+ *   - gain: 0-10V
+ *   - gain: 0-10V
+ *   - gain: 0-10V
+ *   - gain: 0-10V
+ *   - gain: 0-10V
+ *   - gain: 0-10V
+ *   - gain: 0-10V
+ *   - gain: 0-10V
+ *   - gain: 0-10V
+ *   - gain: 0-10V
+ *   - gain: 0-10V
+ *   - gain: 0-10V
+ *   - gain: 0-10V
+ *   - gain: 0-10V
+ *   - gain: 0-10V
+ *   - gain: 0-10V
+ *   calibration: Normal
+ *   trigger:
+ *     edge: falling edge
+ *     scan: all channels
+ *     type: external
+ * @endverbatim
+ */
+char *ADCConfigBlockToYAML(ADCConfigBlock *config)
+{
+    int i;
+    char tmpbuf[2048] = {0};
+    strcat(tmpbuf,"---\nconfig:\n");
+    strcat(tmpbuf,"  channels:\n");
+    for(i = 0; i <= 15; i++) {
+        strcat(tmpbuf,"    - gain: ");
+        strcat(tmpbuf,get_gain_code(config->registers[i]));
+        strcat(tmpbuf,"\n");
+    }
+
+    /* strcat(tmpbuf,"  calibration: "); */
+    sprintf( &tmpbuf[strlen(tmpbuf)],"  %s: %s\n", CALIBRATION_STRING, get_cal_mode( config->registers[AD_REGISTER_CAL_MODE] ));
+    /* strcat(tmpbuf, get_cal_mode( config->registers[AD_REGISTER_CAL_MODE]  )); */
+    /* strcat(tmpbuf, "\n"); */
+
+    sprintf( &tmpbuf[strlen(tmpbuf)],
+             "  %s:\n     %s: %s\n", 
+             TRIGGER_STRING, 
+             REFERENCE_STRING, 
+             get_trigger_mode( config->registers[AD_REGISTER_TRIG_COUNT] ));
+    /* strcat(tmpbuf, "  trigger:\n"); */
+    /* strcat(tmpbuf, "     reference: "); */
+    /* strcat(tmpbuf, get_trigger_mode( config->registers[AD_REGISTER_TRIG_COUNT] )); */
+    /* strcat(tmpbuf,"\n"); */
+    sprintf( &tmpbuf[strlen(tmpbuf)], "     %s: %s\n", EDGE_STRING, get_edge_mode( config->registers[AD_REGISTER_TRIG_COUNT] ) );
+    /* strcat(tmpbuf, "     edge: "); */
+    /* strcat(tmpbuf, get_edge_mode( config->registers[AD_REGISTER_TRIG_COUNT] )); */
+    /* strcat(tmpbuf, "\n"); */
+
+    sprintf( &tmpbuf[strlen(tmpbuf)], "     %s: %s\n", REFCHANNEL_STRING, get_scan_mode(config->registers[AD_REGISTER_TRIG_COUNT] ));
+    /* strcat(tmpbuf, "     refchannel: "); */
+    /* strcat(tmpbuf, get_scan_mode(config->registers[AD_REGISTER_TRIG_COUNT]) ); */
+    /* strcat(tmpbuf,"\n"); */
+
+    sprintf( &tmpbuf[strlen(tmpbuf)], "  %s: %d\n", STARTCHANNEL_STRING, ADCConfigBlockGetStartChannel( config ));
+    /* strcat(tmpbuf,  "  start_channel: "); */
+    /* sprintf(tbuf,"%d\n", ADCConfigBlockGetStartChannel( config ) );  */
+    /* strcat(tmpbuf, tbuf ); */
+    /* strcat(tmpbuf,  "  end_channel: "); */
+    /* sprintf(tbuf,"%d\n", ADCConfigBlockGetEndChannel( config )); */
+    sprintf( &tmpbuf[strlen(tmpbuf)], "  %s: %d\n", ENDCHANNEL_STRING, ADCConfigBlockGetEndChannel( config ));
+
+    return strdup(tmpbuf);
+}
+
+/*----------------------------------------------------------------------------*/
+char *ADCConfigBlockToJSON(ADCConfigBlock *config)
+{
+    int i;
+    char tmpbuf[2048] = {0};
+    char tbuf[6] = {0};
+    strcat(tmpbuf,"{\"config\":");
+    strcat(tmpbuf,"{");
+    strcat(tmpbuf,"\"channels\":[");
+    for(i = 0; i <= 14; i++) {
+        strcat(tmpbuf,"{\"gain\":\"" );
+        strcat(tmpbuf, get_gain_code(config->registers[i]) );
+        strcat(tmpbuf,"\"}," );
+    }
+    strcat(tmpbuf,"{\"gain\":\"" );
+    strcat(tmpbuf, get_gain_code(config->registers[15]) );
+    strcat(tmpbuf, "\"}" );
+    strcat(tmpbuf,"],");
+    strcat(tmpbuf,"\"calibration\":\"");
+    strcat(tmpbuf, get_cal_mode( config->registers[AD_REGISTER_CAL_MODE] ));
+    /* switch (config->registers[AD_REGISTER_CAL_MODE] ) { */
+    /* case AD_CAL_MODE_NORMAL: */
+    /*     strcat(tmpbuf,"Normal"); */
+    /*     break; */
+    /* case AD_CAL_MODE_GROUND: */
+    /*     strcat(tmpbuf,"Ground"); */
+    /*     break; */
+    /* case AD_CAL_MODE_REFERENCE: */
+    /*     strcat(tmpbuf, "Reference"); */
+    /*     break; */
+    /* case AD_CAL_MODE_BIP_GROUND: */
+    /*     strcat(tmpbuf,"BIP Reference"); */
+    /*     break; */
+    /* default: */
+    /*     strcat(tmpbuf, "Unknown"); */
+    /* } */
+    strcat(tmpbuf,"\",");
+
+    strcat(tmpbuf, "\"trigger\":{");
+    strcat(tmpbuf, "\"reference\":\"");
+    if (config->registers[AD_REGISTER_TRIG_COUNT] & AD_TRIGGER_CTR0_EXT) {
+        strcat(tmpbuf, "external");
+    } else if (config->registers[AD_REGISTER_TRIG_COUNT] & AD_TRIGGER_TIMER) {
+        strcat(tmpbuf, "counter");
+    } else {
+        strcat(tmpbuf,"sw");
+    }
+    strcat(tmpbuf, "\",");
+
+    strcat(tmpbuf, "\"edge\":\"");
+    if (config->registers[AD_REGISTER_TRIG_COUNT] & AD_TRIGGER_FALLING_EDGE) {
+        strcat(tmpbuf, "falling-edge");
+    } else {
+        strcat( tmpbuf, "rising-edge" );
+    }
+    strcat(tmpbuf, "\",");
+    strcat(tmpbuf, "\"refchannel\":\"");
+    if (config->registers[AD_REGISTER_TRIG_COUNT] & AD_TRIGGER_SCAN) {
+        strcat(tmpbuf, "all channels");
+    } else {
+        strcat(tmpbuf, "single-channel");
+    }
+    strcat(tmpbuf, "\",");
+
+    strcat(tmpbuf,  "\"start_channel\":\"");
+    sprintf(tbuf,"%d", config->registers[AD_CONFIG_START_END] & 0xF );
+    strcat(tmpbuf, tbuf );
+    strcat(tmpbuf, "\",");
+    strcat(tmpbuf,  "\"end_channel\":\"");
+    sprintf(tbuf,"%d", config->registers[AD_CONFIG_START_END] >> 4 );
+    strcat(tmpbuf, tbuf );
+    strcat(tmpbuf, "\"");
+    strcat(tmpbuf,"}}}");
+    return strdup(tmpbuf);
+
+}
+
+
+
 #ifdef __cplusplus
 }
 #endif
-
-
 
 
 #ifdef SELF_TEST
@@ -479,6 +714,63 @@ AIORET_TYPE ADCConfigBlockSetDifferentialMode(ADCConfigBlock *config, unsigned c
 #include "tap.h"
 #include "AIOUSBDevice.h"
 using namespace AIOUSB;
+
+
+TEST(ADCConfigBlock, YAMLRepresentation)
+{
+    ADCConfigBlock config;
+    AIOUSBDevice dev;
+    AIOUSBDeviceInitializeWithProductID( &dev, USB_AIO16_16A );
+
+    ADCConfigBlockInitialize( &config, &dev );
+    /* Some random configurations */
+
+    /* set the channels 3-5 to be 0-2V */
+    for ( unsigned channel = 3; channel <= 5; channel ++ )
+        ADCConfigBlockSetGainCode( &config, channel, AD_GAIN_CODE_0_2V );
+    
+   
+    /* Set the channels 6-9 to be +-5V */
+    for ( unsigned channel = 6; channel <= 9; channel ++ )
+        ADCConfigBlockSetGainCode( &config, channel, AD_GAIN_CODE_5V  );
+
+    /* Set the number of oversamples to be 201 */
+    ADCConfigBlockSetOversample( &config, 201 );
+    /* Set external triggered */
+    ADCConfigBlockSetScanRange( &config, 0, 15 );
+
+    std::cout << ADCConfigBlockToYAML( &config ) << std::endl;
+
+}
+
+TEST(ADCConfigBlock, JSONRepresentation)
+{
+    ADCConfigBlock config;
+    AIOUSBDevice dev;
+    AIOUSBDeviceInitializeWithProductID( &dev, USB_AIO16_16A );
+
+    ADCConfigBlockInitialize( &config, &dev );
+    /* Some random configurations */
+
+    /* set the channels 3-5 to be 0-2V */
+    for ( unsigned channel = 3; channel <= 5; channel ++ )
+        ADCConfigBlockSetGainCode( &config, channel, AD_GAIN_CODE_0_2V );
+    
+   
+    /* Set the channels 6-9 to be +-5V */
+    for ( unsigned channel = 6; channel <= 9; channel ++ )
+        ADCConfigBlockSetGainCode( &config, channel, AD_GAIN_CODE_5V  );
+
+    /* Set the number of oversamples to be 201 */
+    ADCConfigBlockSetOversample( &config, 201 );
+    /* Set external triggered */
+    ADCConfigBlockSetScanRange( &config, 0, 15 );
+
+    std::cout << ADCConfigBlockToJSON( &config ) << std::endl;
+
+}
+
+
 
 TEST(ADCConfigBlock,CopyConfigs ) 
 {
