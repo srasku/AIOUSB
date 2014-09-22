@@ -520,6 +520,7 @@ const char *get_trigger_mode( int code )
    }
 }
 
+/*----------------------------------------------------------------------------*/
 const char *get_edge_mode(int code)
 {
     if ( code & AD_TRIGGER_FALLING_EDGE) {
@@ -529,6 +530,7 @@ const char *get_edge_mode(int code)
     }
 }
 
+/*----------------------------------------------------------------------------*/
 const char *get_scan_mode(int code)
 {
   if ( code & AD_TRIGGER_SCAN) {
@@ -546,6 +548,10 @@ const char *get_scan_mode(int code)
 #define REFCHANNEL_STRING "refchannel"
 #define STARTCHANNEL_STRING "start_channel"
 #define ENDCHANNEL_STRING "end_channel"
+#define GAIN_STRING "gain"
+#define CHANNELS_STRING "channels"
+#define CONFIG_STRING "config"
+#define OVERSAMPLE_STRING "oversample"
 
 /*----------------------------------------------------------------------------*/
 /**
@@ -573,53 +579,33 @@ const char *get_scan_mode(int code)
  *   calibration: Normal
  *   trigger:
  *     edge: falling edge
- *     scan: all channels
- *     type: external
+ *     refchannel: all-channels
+ *     reference: external
+ *   oversample: 201
  * @endverbatim
  */
 char *ADCConfigBlockToYAML(ADCConfigBlock *config)
 {
     int i;
     char tmpbuf[2048] = {0};
-    strcat(tmpbuf,"---\nconfig:\n");
-    strcat(tmpbuf,"  channels:\n");
-    for(i = 0; i <= 15; i++) {
-        strcat(tmpbuf,"    - gain: ");
-        strcat(tmpbuf,get_gain_code(config->registers[i]));
-        strcat(tmpbuf,"\n");
-    }
 
-    /* strcat(tmpbuf,"  calibration: "); */
+    sprintf( &tmpbuf[strlen(tmpbuf)], "---\n%s:\n", CONFIG_STRING );
+    sprintf( &tmpbuf[strlen(tmpbuf)], "  %s:\n", CHANNELS_STRING );
+    for(i = 0; i <= 15; i++)
+        sprintf( &tmpbuf[strlen(tmpbuf)], "    - %s: %s\n", GAIN_STRING, get_gain_code(config->registers[i]));
+
     sprintf( &tmpbuf[strlen(tmpbuf)],"  %s: %s\n", CALIBRATION_STRING, get_cal_mode( config->registers[AD_REGISTER_CAL_MODE] ));
-    /* strcat(tmpbuf, get_cal_mode( config->registers[AD_REGISTER_CAL_MODE]  )); */
-    /* strcat(tmpbuf, "\n"); */
-
     sprintf( &tmpbuf[strlen(tmpbuf)],
              "  %s:\n     %s: %s\n", 
              TRIGGER_STRING, 
              REFERENCE_STRING, 
              get_trigger_mode( config->registers[AD_REGISTER_TRIG_COUNT] ));
-    /* strcat(tmpbuf, "  trigger:\n"); */
-    /* strcat(tmpbuf, "     reference: "); */
-    /* strcat(tmpbuf, get_trigger_mode( config->registers[AD_REGISTER_TRIG_COUNT] )); */
-    /* strcat(tmpbuf,"\n"); */
+
     sprintf( &tmpbuf[strlen(tmpbuf)], "     %s: %s\n", EDGE_STRING, get_edge_mode( config->registers[AD_REGISTER_TRIG_COUNT] ) );
-    /* strcat(tmpbuf, "     edge: "); */
-    /* strcat(tmpbuf, get_edge_mode( config->registers[AD_REGISTER_TRIG_COUNT] )); */
-    /* strcat(tmpbuf, "\n"); */
-
     sprintf( &tmpbuf[strlen(tmpbuf)], "     %s: %s\n", REFCHANNEL_STRING, get_scan_mode(config->registers[AD_REGISTER_TRIG_COUNT] ));
-    /* strcat(tmpbuf, "     refchannel: "); */
-    /* strcat(tmpbuf, get_scan_mode(config->registers[AD_REGISTER_TRIG_COUNT]) ); */
-    /* strcat(tmpbuf,"\n"); */
-
     sprintf( &tmpbuf[strlen(tmpbuf)], "  %s: %d\n", STARTCHANNEL_STRING, ADCConfigBlockGetStartChannel( config ));
-    /* strcat(tmpbuf,  "  start_channel: "); */
-    /* sprintf(tbuf,"%d\n", ADCConfigBlockGetStartChannel( config ) );  */
-    /* strcat(tmpbuf, tbuf ); */
-    /* strcat(tmpbuf,  "  end_channel: "); */
-    /* sprintf(tbuf,"%d\n", ADCConfigBlockGetEndChannel( config )); */
     sprintf( &tmpbuf[strlen(tmpbuf)], "  %s: %d\n", ENDCHANNEL_STRING, ADCConfigBlockGetEndChannel( config ));
+    sprintf( &tmpbuf[strlen(tmpbuf)], "  %s: %d\n", OVERSAMPLE_STRING, ADCConfigBlockGetOversample( config ));
 
     return strdup(tmpbuf);
 }
@@ -629,76 +615,30 @@ char *ADCConfigBlockToJSON(ADCConfigBlock *config)
 {
     int i;
     char tmpbuf[2048] = {0};
-    char tbuf[6] = {0};
-    strcat(tmpbuf,"{\"config\":");
-    strcat(tmpbuf,"{");
-    strcat(tmpbuf,"\"channels\":[");
-    for(i = 0; i <= 14; i++) {
-        strcat(tmpbuf,"{\"gain\":\"" );
-        strcat(tmpbuf, get_gain_code(config->registers[i]) );
-        strcat(tmpbuf,"\"}," );
-    }
-    strcat(tmpbuf,"{\"gain\":\"" );
-    strcat(tmpbuf, get_gain_code(config->registers[15]) );
-    strcat(tmpbuf, "\"}" );
-    strcat(tmpbuf,"],");
-    strcat(tmpbuf,"\"calibration\":\"");
-    strcat(tmpbuf, get_cal_mode( config->registers[AD_REGISTER_CAL_MODE] ));
-    /* switch (config->registers[AD_REGISTER_CAL_MODE] ) { */
-    /* case AD_CAL_MODE_NORMAL: */
-    /*     strcat(tmpbuf,"Normal"); */
-    /*     break; */
-    /* case AD_CAL_MODE_GROUND: */
-    /*     strcat(tmpbuf,"Ground"); */
-    /*     break; */
-    /* case AD_CAL_MODE_REFERENCE: */
-    /*     strcat(tmpbuf, "Reference"); */
-    /*     break; */
-    /* case AD_CAL_MODE_BIP_GROUND: */
-    /*     strcat(tmpbuf,"BIP Reference"); */
-    /*     break; */
-    /* default: */
-    /*     strcat(tmpbuf, "Unknown"); */
-    /* } */
-    strcat(tmpbuf,"\",");
 
-    strcat(tmpbuf, "\"trigger\":{");
-    strcat(tmpbuf, "\"reference\":\"");
-    if (config->registers[AD_REGISTER_TRIG_COUNT] & AD_TRIGGER_CTR0_EXT) {
-        strcat(tmpbuf, "external");
-    } else if (config->registers[AD_REGISTER_TRIG_COUNT] & AD_TRIGGER_TIMER) {
-        strcat(tmpbuf, "counter");
-    } else {
-        strcat(tmpbuf,"sw");
-    }
-    strcat(tmpbuf, "\",");
+    sprintf( &tmpbuf[strlen(tmpbuf)], "{\"%s\":{", CONFIG_STRING );
+    sprintf( &tmpbuf[strlen(tmpbuf)], "\"%s\":[", CHANNELS_STRING );
+    for(i = 0; i <= 14; i++)
+        sprintf( &tmpbuf[strlen(tmpbuf)], "{\"%s\":\"%s\"},", GAIN_STRING, get_gain_code(config->registers[i]));
+    sprintf( &tmpbuf[strlen(tmpbuf)], "{\"%s\":\"%s\"}],", GAIN_STRING, get_gain_code(config->registers[15]));
 
-    strcat(tmpbuf, "\"edge\":\"");
-    if (config->registers[AD_REGISTER_TRIG_COUNT] & AD_TRIGGER_FALLING_EDGE) {
-        strcat(tmpbuf, "falling-edge");
-    } else {
-        strcat( tmpbuf, "rising-edge" );
-    }
-    strcat(tmpbuf, "\",");
-    strcat(tmpbuf, "\"refchannel\":\"");
-    if (config->registers[AD_REGISTER_TRIG_COUNT] & AD_TRIGGER_SCAN) {
-        strcat(tmpbuf, "all channels");
-    } else {
-        strcat(tmpbuf, "single-channel");
-    }
-    strcat(tmpbuf, "\",");
+    sprintf( &tmpbuf[strlen(tmpbuf)],"\"%s\":\"%s\",", CALIBRATION_STRING, get_cal_mode( config->registers[AD_REGISTER_CAL_MODE] ));
+    sprintf( &tmpbuf[strlen(tmpbuf)],
+             "\"%s\":{\"%s\":\"%s\",", 
+             TRIGGER_STRING, 
+             REFERENCE_STRING, 
+             get_trigger_mode( config->registers[AD_REGISTER_TRIG_COUNT] ));
 
-    strcat(tmpbuf,  "\"start_channel\":\"");
-    sprintf(tbuf,"%d", config->registers[AD_CONFIG_START_END] & 0xF );
-    strcat(tmpbuf, tbuf );
-    strcat(tmpbuf, "\",");
-    strcat(tmpbuf,  "\"end_channel\":\"");
-    sprintf(tbuf,"%d", config->registers[AD_CONFIG_START_END] >> 4 );
-    strcat(tmpbuf, tbuf );
-    strcat(tmpbuf, "\"");
-    strcat(tmpbuf,"}}}");
+    sprintf( &tmpbuf[strlen(tmpbuf)], "\"%s\":\"%s\",", EDGE_STRING, get_edge_mode( config->registers[AD_REGISTER_TRIG_COUNT] ) );
+    sprintf( &tmpbuf[strlen(tmpbuf)], "\"%s\":\"%s\"", REFCHANNEL_STRING, get_scan_mode(config->registers[AD_REGISTER_TRIG_COUNT] ));
+    sprintf( &tmpbuf[strlen(tmpbuf)], "},");
+    sprintf( &tmpbuf[strlen(tmpbuf)], "\"%s\":\"%d\",", STARTCHANNEL_STRING, ADCConfigBlockGetStartChannel( config ));
+    sprintf( &tmpbuf[strlen(tmpbuf)], "\"%s\":\"%d\",", ENDCHANNEL_STRING, ADCConfigBlockGetEndChannel( config ));
+    sprintf( &tmpbuf[strlen(tmpbuf)], "\"%s\":\"%d\"", OVERSAMPLE_STRING, ADCConfigBlockGetOversample( config ));
+
+    strcat(tmpbuf,"}}");
+
     return strdup(tmpbuf);
-
 }
 
 
@@ -739,8 +679,8 @@ TEST(ADCConfigBlock, YAMLRepresentation)
     /* Set external triggered */
     ADCConfigBlockSetScanRange( &config, 0, 15 );
 
-    std::cout << ADCConfigBlockToYAML( &config ) << std::endl;
-
+    /* std::cout << ADCConfigBlockToYAML( &config ) << std::endl; */
+    EXPECT_STREQ( ADCConfigBlockToYAML( &config ), "---\nconfig:\n  channels:\n    - gain: 0-10V\n    - gain: 0-10V\n    - gain: 0-10V\n    - gain: 0-2V\n    - gain: 0-2V\n    - gain: 0-2V\n    - gain: +/-5V\n    - gain: +/-5V\n    - gain: +/-5V\n    - gain: 0-10V\n    - gain: 0-10V\n    - gain: 0-10V\n    - gain: 0-10V\n    - gain: 0-10V\n    - gain: 0-10V\n    - gain: 0-10V\n  calibration: Normal\n  trigger:\n     reference: sw\n     edge: rising-edge\n     refchannel: single-channel\n  start_channel: 0\n  end_channel: 15\n  oversample: 201\n" );
 }
 
 TEST(ADCConfigBlock, JSONRepresentation)
@@ -756,7 +696,6 @@ TEST(ADCConfigBlock, JSONRepresentation)
     for ( unsigned channel = 3; channel <= 5; channel ++ )
         ADCConfigBlockSetGainCode( &config, channel, AD_GAIN_CODE_0_2V );
     
-   
     /* Set the channels 6-9 to be +-5V */
     for ( unsigned channel = 6; channel <= 9; channel ++ )
         ADCConfigBlockSetGainCode( &config, channel, AD_GAIN_CODE_5V  );
@@ -766,8 +705,13 @@ TEST(ADCConfigBlock, JSONRepresentation)
     /* Set external triggered */
     ADCConfigBlockSetScanRange( &config, 0, 15 );
 
-    std::cout << ADCConfigBlockToJSON( &config ) << std::endl;
+    EXPECT_STREQ("{\"config\":{\"channels\":[{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-2V\"},{\"gain\":\"0-2V\"},{\"gain\":\"0-2V\"},{\"gain\":\"+/-5V\"},{\"gain\":\"+/-5V\"},{\"gain\":\"+/-5V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"}],\"calibration\":\"Normal\",\"trigger\":{\"reference\":\"sw\",\"edge\":\"rising-edge\",\"refchannel\":\"single-channel\"},\"start_channel\":\"0\",\"end_channel\":\"15\",\"oversample\":\"201\"}}", 
+                 ADCConfigBlockToJSON( &config ) );
 
+    ADCConfigBlockSetOversample( &config, 102 );
+    EXPECT_STREQ("{\"config\":{\"channels\":[{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-2V\"},{\"gain\":\"0-2V\"},{\"gain\":\"0-2V\"},{\"gain\":\"+/-5V\"},{\"gain\":\"+/-5V\"},{\"gain\":\"+/-5V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"}],\"calibration\":\"Normal\",\"trigger\":{\"reference\":\"sw\",\"edge\":\"rising-edge\",\"refchannel\":\"single-channel\"},\"start_channel\":\"0\",\"end_channel\":\"15\",\"oversample\":\"102\"}}", 
+                 ADCConfigBlockToJSON( &config ) );
+    
 }
 
 
