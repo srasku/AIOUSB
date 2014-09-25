@@ -23,7 +23,8 @@ USBDevice.o \
 AIODeviceTable.o \
 AIOUSBDevice.o \
 AIOChannelRange.o \
-ADCConfigBlock.o
+ADCConfigBlock.o \
+cJSON.o
 
 include $(AIOUSB_ROOT)/Mkfiles/oses.inc
 

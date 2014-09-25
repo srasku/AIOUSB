@@ -10,8 +10,14 @@ namespace AIOUSB
 {
 #endif
 
+
+
 typedef struct aio_usb_driver AIOUSBDevice ;
 
+typedef struct mux_settings {
+    int ADCChannelsPerGroup;
+    int ADCMUXChannels;
+} ADCMuxSettings;
 
 typedef struct adc_config_block {
     AIOUSBDevice *device; /**< Pointer to the device Descriptor */
@@ -19,7 +25,16 @@ typedef struct adc_config_block {
     AIOUSB_BOOL testing; /**< For making Unit tests that don't talk to hardware */
     unsigned char registers[ AD_MAX_CONFIG_REGISTERS +1];
     int timeout;
+    ADCMuxSettings mux_settings;
 } ADCConfigBlock;
+
+typedef struct lookup { 
+    int value;
+    char const *str;
+    char const *strvalue;
+} EnumStringLookup;
+
+#define STRINGIFY(x) #x
 
 
 PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockInit( ADCConfigBlock *, AIOUSBDevice *deviceDesc, unsigned int );

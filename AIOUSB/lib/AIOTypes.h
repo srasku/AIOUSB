@@ -449,13 +449,13 @@ enum {
  */
 CREATE_ENUM_W_START( ADGainCode, 0,
                      AD_GAIN_CODE_0_10V,    /* 0-10V */
-                     AD_GAIN_CODE_10V,      /* +/-10V */
+                     AD_GAIN_CODE_10V,      /* +-10V */
                      AD_GAIN_CODE_0_5V,     /* 0-5V */
-                     AD_GAIN_CODE_5V,       /* +/-5V */
+                     AD_GAIN_CODE_5V,       /* +-5V */
                      AD_GAIN_CODE_0_2V,     /* 0-2V */
-                     AD_GAIN_CODE_2V,       /* +/-2V */
+                     AD_GAIN_CODE_2V,       /* +-2V */
                      AD_GAIN_CODE_0_1V,     /* 0-1V */
-                     AD_GAIN_CODE_1V        /* +/-1V */
+                     AD_GAIN_CODE_1V        /* +-1V */
                      );
 
 
