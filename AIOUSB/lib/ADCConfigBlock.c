@@ -260,14 +260,13 @@ AIORET_TYPE ADCConfigBlockSetAllGainCodeAndDiffMode(ADCConfigBlock *config, unsi
     return retval;
 }
 
-
 /*----------------------------------------------------------------------------*/
 AIORET_TYPE  ADCConfigBlockGetGainCode(const ADCConfigBlock *config, unsigned channel)
 {
     if ( !config )
         return -AIOUSB_ERROR_INVALID_DATA;
 
-    unsigned gainCode = FIRST_ENUM(ADGainCode);             // return reasonable value on error
+    unsigned gainCode = FIRST_ENUM(ADGainCode);
     if( config != 0 && config->device != 0 &&   config->size != 0 ) { 
         AIOUSBDevice *deviceDesc = ( AIOUSBDevice* )config->device;
         if(channel < AD_MAX_CHANNELS && channel < deviceDesc->ADCMUXChannels) {
@@ -336,7 +335,7 @@ AIORET_TYPE ADCConfigBlockSetScanRange(ADCConfigBlock *config, unsigned startCha
             config->registers[ AD_CONFIG_START_END ] = ( unsigned char )((endChannel << 4) | startChannel);
         }
     }
-    AIOUSB_UnLock();
+
  return retval;
 }
 
