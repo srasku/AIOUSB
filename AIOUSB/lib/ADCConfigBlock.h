@@ -79,6 +79,11 @@ PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockInitialize( ADCConfigBlock *config , AIO
 PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockSetTesting( ADCConfigBlock *obj, AIOUSB_BOOL testing );
 PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockGetTesting( const ADCConfigBlock *obj );
 
+/* JSON API */
+char *ADCConfigBlockToJSON(ADCConfigBlock *config);
+ADCConfigBlock *NewADCConfigBlockFromJSON( char *str );
+
+
 #ifndef SWIG
 PUBLIC_EXTERN AIORET_TYPE _adccblock_valid_channel_settings(AIORET_TYPE in, ADCConfigBlock *config , int ADCMUXChannels );
 PUBLIC_EXTERN AIORET_TYPE _adccblock_valid_size(AIORET_TYPE in, ADCConfigBlock *config );

@@ -185,7 +185,7 @@ TEST_F(ValidateSetup, ShouldFailValidate )
     }
     EXPECT_EQ(top->NumberValidators(top), 102 );
     retval = top->ValidateChain( top );
-    EXPECT_LE( retval, 0 );
+    EXPECT_LE( retval, -1 );
     DeleteValidators( top );
 
 }

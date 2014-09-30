@@ -219,6 +219,7 @@ void process_cmd_line( struct opts *options, int argc, char *argv [] )
     
     static struct option long_options[] = {
       {"buffersize",   required_argument, 0,  'b' },
+      {"numscans",     required_argument, 0,  'N' },
       {"numchannels",  required_argument, 0,  'n' },
       {"gaincode",     required_argument, 0,  'g' },
       {"clockrate",    required_argument, 0,  'c' },
@@ -269,7 +270,7 @@ void process_cmd_line( struct opts *options, int argc, char *argv [] )
         case 'm':
           options->max_count = atoi(optarg);
           break;
-        case 'b':
+        case 'b': case 'N':
           /* printf("option b\n"); */
           options->buffer_size = atoi(optarg);
           if( options->buffer_size <= 0 || options->buffer_size > 1e8 ) {

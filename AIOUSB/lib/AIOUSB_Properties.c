@@ -346,11 +346,13 @@ AIORET_TYPE AIOUSB_ShowDevices( AIODisplayType display_type )
         printf("{\"devices\":[");
         break;
     case YAML:
+        printf("---\n");
+        printf("devices:\n");
         break;
     default:
         break;
     }
-
+    int previous=0;
     for(int index = 0; index < MAX_USB_DEVICES; index++) {
         if ( deviceTable[ index ].usb_device ) {
             int MAX_NAME_SIZE = 100;
@@ -388,10 +390,21 @@ AIORET_TYPE AIOUSB_ShowDevices( AIODisplayType display_type )
                     printf("index=%d,product_id=%#lx,product_name=%s,numIO=%lu,numCounters=%lu\n",index,productID,name,numDIOBytes,numCounters);
                     break;
                 case JSON:
-                    printf("{\"%s\":\"%d\",\"%s\":\"%#lx\",\"%s\":\"%s\",\"%s\":\"%lu\",\"%s\":\"%lu\"}",
+                    if ( previous ) 
+                        printf(",");
+                    printf("{\"%s\":\"%d\",\"%s\":\"%#lx\",\"%s\":\"%s\",\"%s\":%lu,\"%s\":%lu}",
                            "index", index, "product_id",productID,"product_name",name,"numIO",numDIOBytes,"numCounters",numCounters );
+                    previous = 1;
                     break;
                 case YAML:
+                    printf("  - index: %d\n    numCounters: %lu\n    numIO: %lu\n    product_id: %#lx\n    product_name:",
+                           index,
+                           numCounters,
+                           numDIOBytes,
+                           productID,
+                           name
+                           );
+                           
                     break;
                 default:
                     break;
@@ -406,6 +419,7 @@ AIORET_TYPE AIOUSB_ShowDevices( AIODisplayType display_type )
         printf("]}");
         break;
     case YAML:
+        printf("\n");
         break;
     default:
         break;

@@ -43,6 +43,8 @@ AIORET_TYPE USBDeviceClose( USBDevice *dev );
 USBDevice *AIODeviceTableGetUSBDevice( unsigned long DeviceIndex , AIORESULT *result );
 AIORET_TYPE USBDeviceReadADCConfigBlock( USBDevice *usb, ADCConfigBlock *configBlock );
 AIORET_TYPE USBDeviceGetIdProduct( USBDevice *device );
+AIORET_TYPE USBDeviceFetchADCConfigBlock( USBDevice *device, ADCConfigBlock *config );
+
 
 AIORET_TYPE usb_control_transfer(struct aiousb_device *dev_handle,
                                  uint8_t request_type, uint8_t bRequest, uint16_t wValue, uint16_t wIndex,

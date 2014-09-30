@@ -29,6 +29,16 @@ AIORET_TYPE ADCConfigBlockCopy( ADCConfigBlock *to, ADCConfigBlock *from )
 }
 
 /*----------------------------------------------------------------------------*/
+AIORET_TYPE DeleteADCConfig( ADCConfigBlock *config )
+{
+    assert(config);
+    if (!config )
+        return -AIOUSB_ERROR_INVALID_ADCCONFIG;
+    free(config);
+    return AIOUSB_SUCCESS;
+}
+
+/*----------------------------------------------------------------------------*/
 AIOUSBDevice *ADCConfigBlockGetAIOUSBDevice( ADCConfigBlock *obj , AIORET_TYPE *result ) 
 {
     if (!obj ) {
@@ -709,15 +719,6 @@ char *ADCConfigBlockToJSON(ADCConfigBlock *config)
     return strdup(tmpbuf);
 }
 
-/* AIORET_TYPE _assist_trigger_select( ADCConfigBlock *config, AIOUSB_BOOL val , int setting ) */
-/* { */
-/*     assert(config); */
-/*     if ( !config ) */
-/*         return -AIOUSB_ERROR_INVALID_ADCCONFIG; */
-/*     config->registers[AD_REGISTER_TRIG_COUNT] = (config->registers[AD_REGISTER_TRIG_COUNT] & ~setting) | ( val ? setting : 0 ); */
-/* } */
-
-
 AIORET_TYPE ADCConfigBlockSetScanAllChannels(  ADCConfigBlock *config, AIOUSB_BOOL val )
 {
     return _assist_trigger_select(config, val, AD_TRIGGER_SCAN);
@@ -761,7 +762,7 @@ cJSON *ADCConfigBlockGetJSONValueOrDefault( cJSON *config,
 }
 
 /*------------------------------------------------------------------------------*/
-ADCConfigBlock *ADCConfigBlockFromJSON( char *str )
+ADCConfigBlock *NewADCConfigBlockFromJSON( char *str )
 {
     ADCConfigBlock *adc = (ADCConfigBlock *)calloc(sizeof(ADCConfigBlock),1);
     adc->size = 20;

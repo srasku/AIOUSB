@@ -178,9 +178,8 @@ libusb_device_handle *get_usb_device( struct aiousb_device *dev )
     return dev->deviceHandle;
 }
 
-#if 0
 /*----------------------------------------------------------------------------*/
-AIORET_TYPE USBDeviceReadADCConfigBlock( USBDevice *usb, ADCConfigBlock *configBlock )
+AIORET_TYPE USBDeviceFetchADCConfigBlock( USBDevice *usb, ADCConfigBlock *configBlock )
 {
     AIORET_TYPE result = AIOUSB_SUCCESS;
     AIOUSBDevice dev;
@@ -214,7 +213,7 @@ AIORET_TYPE USBDeviceReadADCConfigBlock( USBDevice *usb, ADCConfigBlock *configB
          * check and correct settings read from device
          */
 
-        ADCConfigBlockCopy( configBlock, &config );
+        result = ADCConfigBlockCopy( configBlock, &config );
     }
 
  out_ReadConfigBlock:
@@ -223,7 +222,7 @@ AIORET_TYPE USBDeviceReadADCConfigBlock( USBDevice *usb, ADCConfigBlock *configB
 }
 
 /*----------------------------------------------------------------------------*/
-AIORET_TYPE USBDeviceWriteADCConfigBlock( USBDevice *usb, ADCConfigBlock *configBlock )
+AIORET_TYPE USBDevicePutADCConfigBlock( USBDevice *usb, ADCConfigBlock *configBlock )
 {
     AIORET_TYPE retval;
     assert(usb != NULL && configBlock != NULL );
@@ -248,7 +247,6 @@ AIORET_TYPE USBDeviceWriteADCConfigBlock( USBDevice *usb, ADCConfigBlock *config
     }
     return retval;
 }
-#endif
 
 /*----------------------------------------------------------------------------*/
 int usb_control_transfer(struct aiousb_device *dev_handle,

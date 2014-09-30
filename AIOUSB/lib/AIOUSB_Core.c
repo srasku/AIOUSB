@@ -326,6 +326,7 @@ long AIOUSB_GetStreamingBlockSize(unsigned long DeviceIndex)
     return BlockSize;
 }
 
+/*----------------------------------------------------------------------------*/
 unsigned long AIOUSB_SetStreamingBlockSize(
                                            unsigned long DeviceIndex,
                                            unsigned long BlockSize
