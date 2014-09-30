@@ -330,51 +330,98 @@ const char *AIOUSB_GetResultCodeAsString(unsigned long result_value)
 }
 
 /*----------------------------------------------------------------------------*/
-void AIOUSB_ListDevices() 
+AIORET_TYPE AIOUSB_ShowDevices( AIODisplayType display_type )
 {
-    AIOUSB_BOOL found = AIOUSB_FALSE;
-    if(AIOUSB_Lock()) {
-          if(AIOUSB_IsInit()) {
-                int index;
-                for(index = 0; index < MAX_USB_DEVICES; index++) {
-                    if(deviceTable[ index ].usb_device != NULL) {
-                            const int MAX_NAME_SIZE = 100;
-                            char name[ MAX_NAME_SIZE + 1 ];
-                            unsigned long productID;
-                            unsigned long nameSize = MAX_NAME_SIZE;
-                            unsigned long numDIOBytes;
-                            unsigned long numCounters;
-                            AIOUSB_UnLock();                               /* unlock while communicating with device */
-                            const unsigned long result = QueryDeviceInfo(index, &productID, &nameSize, name, &numDIOBytes, &numCounters);
-                            if(result == AIOUSB_SUCCESS) {
-                                  name[ nameSize ] = '\0';
-                                  if(!found) {
-                                     /* print a heading before the first device found */
-                                        printf("ACCES devices found:\n");
-                                        found = AIOUSB_TRUE;
-                                    }
-                                  printf(
-                                      "  Device at index %d:\n"
-                                      "    Product ID: %#lx\n"
-                                      "    Product name: %s\n"
-                                      "    Number of digital I/O bytes: %lu\n"
-                                      "    Number of counters: %lu\n",
-                                      index,
-                                      productID,
-                                      name,
-                                      numDIOBytes,
-                                      numCounters
-                                      );
-                              }
+    int found = 0;
+    if ( !AIOUSB_IsInit() )
+        return -AIOUSB_ERROR_NOT_INIT;
+    switch ( display_type ) {
+    case BASIC:
+        printf("ACCES devices");
+        break;
+    case TERSE:
+        printf("AIODevices:\n");
+        break;
+    case JSON:
+        printf("{\"devices\":[");
+        break;
+    case YAML:
+        break;
+    default:
+        break;
+    }
 
-                            AIOUSB_Lock();
-                        }
-                  }
+    for(int index = 0; index < MAX_USB_DEVICES; index++) {
+        if ( deviceTable[ index ].usb_device ) {
+            int MAX_NAME_SIZE = 100;
+            char name[ MAX_NAME_SIZE + 1 ];
+            unsigned long productID;
+            unsigned long nameSize = MAX_NAME_SIZE;
+            unsigned long numDIOBytes;
+            unsigned long numCounters;
+            AIOUSB_UnLock();                               /* unlock while communicating with device */
+            unsigned long result = QueryDeviceInfo(index, &productID, &nameSize, name, &numDIOBytes, &numCounters);
+            if (result == AIOUSB_SUCCESS) {
+                name[ nameSize ] = '\0';
+                if (!found) {
+                    /* Print heading before the first device found */
+                    switch (display_type ) { 
+                    case BASIC:
+                        printf(" found:\n");
+                        break;
+                    default:
+                        break;
+                    } 
+                    found = AIOUSB_TRUE;
+                }
+                switch ( display_type ) {
+                case BASIC:
+                    printf("  Device at index %d:\n  Product ID: %#lx\n  Product name: %s\n  Number of digital I/O bytes: %lu\n  Number of counters: %lu\n",
+                           index,
+                           productID,
+                           name,
+                           numDIOBytes,
+                           numCounters
+                           );
+                    break;
+                case TERSE:
+                    printf("index=%d,product_id=%#lx,product_name=%s,numIO=%lu,numCounters=%lu\n",index,productID,name,numDIOBytes,numCounters);
+                    break;
+                case JSON:
+                    printf("{\"%s\":\"%d\",\"%s\":\"%#lx\",\"%s\":\"%s\",\"%s\":\"%lu\",\"%s\":\"%lu\"}",
+                           "index", index, "product_id",productID,"product_name",name,"numIO",numDIOBytes,"numCounters",numCounters );
+                    break;
+                case YAML:
+                    break;
+                default:
+                    break;
+                }
+            
+                AIOUSB_Lock();
             }
-          AIOUSB_UnLock();
-      }
-    if(!found)
+        }
+    }
+    switch ( display_type ) {
+    case JSON:
+        printf("]}");
+        break;
+    case YAML:
+        break;
+    default:
+        break;
+    }
+
+    return found;
+}
+
+/*----------------------------------------------------------------------------*/
+AIORET_TYPE  AIOUSB_ListDevices() 
+{
+    AIORET_TYPE found = AIOUSB_SUCCESS;
+    found = AIOUSB_ShowDevices( BASIC );
+    if ( found < AIOUSB_SUCCESS )
         printf("No ACCES devices found\n");
+    return found;
 }
 
 #ifdef __cplusplus
