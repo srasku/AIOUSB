@@ -33,6 +33,7 @@ AIORET_TYPE AIOUSBDeviceInitializeWithProductID( AIOUSBDevice *device , ProductI
     device->ProductID     = productID;
     device->isInit        = AIOUSB_TRUE;
     device->testing       = AIOUSB_FALSE;
+    device->commTimeout   = 1000; /* Should be default value */
     _setup_device_parameters( device , productID );
     ADCConfigBlockSetDevice( AIOUSBDeviceGetADCConfigBlock( device ), device );
 

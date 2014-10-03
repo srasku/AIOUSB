@@ -14,7 +14,7 @@
 
 static int libusb_file_number = 0;
 
-typedef DeviceDescriptor AIOUSBDevice;
+/* typedef DeviceDescriptor AIOUSBDevice; */
 
 /*----------------------------------------------------------------------------*/
 void save_results( char *prefix,

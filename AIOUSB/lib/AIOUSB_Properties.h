@@ -35,8 +35,8 @@ PUBLIC_EXTERN AIORET_TYPE AIOUSB_GetDeviceSerialNumber( unsigned long DeviceInde
 PUBLIC_EXTERN AIORESULT FindDevices( int **indices, int *length , int minProductID, int maxProductID  );
 PUBLIC_EXTERN AIORESULT AIOUSB_GetDeviceProperties(unsigned long DeviceIndex, DeviceProperties *properties );
 PUBLIC_EXTERN const char *AIOUSB_GetResultCodeAsString(unsigned long result_value);
-PUBLIC_EXTERN AIORET_TYPE  AIOUSB_ListDevices();
-
+PUBLIC_EXTERN AIORET_TYPE AIOUSB_ListDevices();
+PUBLIC_EXTERN AIORET_TYPE AIOUSB_ShowDevices( AIODisplayType display_type );
 
 
 #ifdef __aiousb_cplusplus       /* Required for header file inclusion and SWIG */

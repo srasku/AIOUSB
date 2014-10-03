@@ -464,30 +464,6 @@ PRIVATE unsigned int ProductNameToID(const char *name)
     return productID;
 }
 
-
-/* unsigned long AIOUSB_GetDevices(void) */
-/* { */
-/*     unsigned long deviceMask = 0; */
-/*     if(!AIOUSB_Lock()) */
-/*         return deviceMask; */
-/*     if(AIOUSB_IsInit()) { */
-/* /\* */
-/*  * we clear the device table to erase references to devices */
-/*  * which may have been unplugged; any device indexes to devices */
-/*  * that have not been unplugged, which the user may be using, */
-/*  * _should_ still be valid */
-/*  *\/ */
-/*         AIODeviceTableClearDevices(); */
-/*         int index; */
-/*         for(index = 0; index < MAX_USB_DEVICES; index++) { */
-/*             /\* if (deviceTable[ index ].device != NULL ) *\/ */
-/*             /\*     deviceMask = (deviceMask << 1) | 1; *\/ */
-/*         } */
-/*     } */
-/*     AIOUSB_UnLock(); */
-/*     return deviceMask; */
-/* } */
-
 /*----------------------------------------------------------------------------*/
 AIORET_TYPE GetDevices(void) 
 {
@@ -517,7 +493,6 @@ AIORET_TYPE GetDevices(void)
     AIOUSB_UnLock();
     return (AIORET_TYPE)deviceMask;
 }
-
 
 /*----------------------------------------------------------------------------*/
 USBDevice *AIODeviceTableGetUSBDeviceAtIndex( unsigned long DeviceIndex, AIORESULT *result )
@@ -1490,27 +1465,6 @@ AIORET_TYPE AIODeviceTablePopulateTable(void)
     return AIOUSB_SUCCESS;
 }
 
-/* int numDevices = libusb_get_device_list(NULL, &deviceList); */
-/* if(numDevices > 0) { */
-/*       int index; */
-/*       for(index = 0; index < numDevices && numAccesDevices < MAX_USB_DEVICES; index++) { */
-/*             struct libusb_device_descriptor libusbDeviceDesc; */
-/*             libusb_device *usb_device = deviceList[ index ]; */
-/*             libusbResult = libusb_get_device_descriptor(usb_device, &libusbDeviceDesc); */
-/*             if(libusbResult == LIBUSB_SUCCESS) { */
-/*                   if(libusbDeviceDesc.idVendor == ACCES_VENDOR_ID) { */
-/*                     /\* add this device to the device table *\/ */
-/*                       AIOUSBDevice *device = (AIOUSBDevice *)&deviceTable[ numAccesDevices++ ]; */
-/*                       device->device = libusb_ref_device(usb_device); */
-/*                       device->deviceHandle = NULL; */
-/*                       /\* set up device-specific properties *\/ */
-/*                       unsigned productID = device->ProductID = libusbDeviceDesc.idProduct; */
-/*                       _setup_device_parameters( device , productID ); */
-/*                   } */
-/*             } */
-/*       } */
-/* } */
-/* libusb_free_device_list(deviceList, AIOUSB_TRUE); */
 
 /*----------------------------------------------------------------------------*/
 /**
