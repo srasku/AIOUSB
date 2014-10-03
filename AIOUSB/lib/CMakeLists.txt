@@ -142,7 +142,12 @@ INCLUDE( build_samples )
 find_package( GTest ) 
 find_package( GTestTap )
 
+
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# Built in tests
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 if( GTESTTAP_FOUND )
+
   set(GTEST_FILES ADCConfigBlock.c AIOChannelMask.c AIOChannelRange.c AIOContinuousBuffer.c AIODeviceInfo.c AIODeviceTable.c AIOUSBDevice.c AIOUSB_Core.c DIOBuf.c USBDevice.c )
   foreach( gtest ${GTEST_FILES} ) 
     set(MY_FLAGS "-DSELF_TEST -D__aiousb_cplusplus -DGTEST_TAP_PRINT_TO_STDOUT"  )
@@ -150,7 +155,18 @@ if( GTESTTAP_FOUND )
     # MESSAGE(STATUS "Libraries: ${MY_LIBRARIES}")
     build_gtest_cpp_file( aiousblibs ${gtest}  ${MY_FLAGS} "${MY_LIBRARIES}"  )
   endforeach(gtest ${GTEST_FILES} ) 
+
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# Testing dir tests
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  FILE( GLOB GTESTING_FILES tests/*.cpp )
+  foreach( gtest_file ${GTESTING_FILES} ) 
+    MESSAGE(STATUS "Trying out file ${gtest_file}")
+    #build_gtest_cpp_file( aiousblibs ${gtest_file} ${MY_FLAGS} "${MY_LIBRARIES}" )
+    build_gtest_test_file( aiousblibs ${gtest_file} ${MY_FLAGS} "${MY_LIBRARIES}" )
+  endforeach( gtest_file )
 endif( GTESTTAP_FOUND )
+
 
 
 #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

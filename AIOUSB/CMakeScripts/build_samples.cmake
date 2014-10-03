@@ -40,9 +40,9 @@ macro ( build_selftest_c_file project c_file  cflags link_libraries )
   INSTALL(TARGETS "${project}_${binary_name}" DESTINATION "share/accesio/selftest/${project}" ) 
 endmacro ( build_selftest_c_file )
 
-#
-# Builds a file in C++ using GTest 
-#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# Builds an in-file testcase in C++ using GTest 
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 macro ( build_gtest_cpp_file project c_file  cflags link_libraries )
   GET_FILENAME_COMPONENT( tmp_c_file ${c_file} NAME )
   STRING(REGEX REPLACE "\\.c$" "_test" binary_name ${tmp_c_file})
@@ -62,6 +62,38 @@ macro ( build_gtest_cpp_file project c_file  cflags link_libraries )
   TARGET_LINK_LIBRARIES( "${project}_${binary_name}" ${link_libraries} )
   INSTALL(TARGETS "${project}_${binary_name}" DESTINATION "share/accesio/selftest/${project}" ) 
 endmacro ( build_gtest_cpp_file  )
+
+
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# Builds a Unit test case in the tests directory
+# @todo improve by making dependency off of the original file
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+macro ( build_gtest_test_file project cpp_file  cflags link_libraries )
+  GET_FILENAME_COMPONENT( just_name_cpp_file ${cpp_file} NAME )
+  # MESSAGE("Found file:${cpp_file}")
+  LINK_DIRECTORIES( ${AIOUSB_INCLUDE_DIR} )
+  #STRING(REGEX REPLACE "\\.c$" "" file_name ${cpp_file})
+  #SET(tmp_gtest_file "${tmp_cpp_file}" )
+  STRING(REGEX REPLACE "\\.cpp$" "" tmp_gtest_file ${just_name_cpp_file} )
+  SET( out_test_file "${CMAKE_CURRENT_BINARY_DIR}/tests/${just_name_cpp_file}" )
+  # MESSAGE("Out file: ${out_test_file}")
+  #SET( test_target_copied "tests_${tmp_gtest_file}_copied" )
+  SET( test_target "tests_${tmp_gtest_file}" )
+
+  # MESSAGE("Copied file: ${out_test_file}")
+  # MESSAGE("Custom Target: ${test_target_copied}")
+  # MESSAGE("Build Target: ${test_target}")
+
+  ADD_EXECUTABLE( ${test_target} ${cpp_file}  )
+  ADD_TEST( NAME ${test_target} COMMAND ${test_target} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} )
+
+  SET_SOURCE_FILES_PROPERTIES( ${out_test_file}  PROPERTIES LANGUAGE CXX)
+  SET_TARGET_PROPERTIES( ${test_target} PROPERTIES OUTPUT_NAME ${test_target} ) 
+  SET_TARGET_PROPERTIES( ${test_target} PROPERTIES COMPILE_FLAGS ${cflags} ) 
+  # MESSAGE(STATUS "Using libs: ${link_libraries}" )
+  TARGET_LINK_LIBRARIES( ${test_target} ${link_libraries} )
+
+endmacro ( build_gtest_test_file  )
 
 
 macro ( build_all_samples project ) 
