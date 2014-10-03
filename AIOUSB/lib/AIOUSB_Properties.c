@@ -397,7 +397,7 @@ AIORET_TYPE AIOUSB_ShowDevices( AIODisplayType display_type )
                     previous = 1;
                     break;
                 case YAML:
-                    printf("  - index: %d\n    numCounters: %lu\n    numIO: %lu\n    product_id: %#lx\n    product_name:",
+                    printf("  - index: %d\n    numCounters: %lu\n    numIO: %lu\n    product_id: %#lx\n    product_name: %s\n",
                            index,
                            numCounters,
                            numDIOBytes,

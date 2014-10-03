@@ -460,6 +460,7 @@ void AIOContinuousBufReset( AIOContinuousBuf *buf )
     AIOContinuousBufUnlock( buf );
 }
 
+
 /*----------------------------------------------------------------------------*/
 /**
  * @brief Returns 
@@ -1322,7 +1323,12 @@ AIORET_TYPE AIOContinuousBufCallbackStart( AIOContinuousBuf *buf )
     return retval;
 }
 
-AIORET_TYPE AIOContinuousBuf_ResetDevice( AIOContinuousBuf *buf) 
+AIORET_TYPE AIOContinuousBuf_ResetDevice(AIOContinuousBuf *buf ) 
+{
+    return AIOContinuousBufResetDevice( buf );
+}
+
+AIORET_TYPE AIOContinuousBufResetDevice( AIOContinuousBuf *buf) 
 {
     unsigned char data[2] = {0x01};
     AIORET_TYPE retval = AIOUSB_SUCCESS;
@@ -1559,9 +1565,49 @@ AIORET_TYPE AIOContinuousBufSetTesting( AIOContinuousBuf *buf, AIOUSB_BOOL testi
     if ( result != AIOUSB_SUCCESS )
         return -result;
 
+    buf->testing = testing;
     AIOContinuousBufUnlock( buf );
     return result;
 }
+
+/*----------------------------------------------------------------------------*/
+AIORET_TYPE AIOContinuousBufGetTesting( AIOContinuousBuf *buf )
+{
+    if ( !buf )
+        return -AIOUSB_ERROR_INVALID_AIOCONTINUOUS_BUFFER;
+    return buf->testing;
+}
+
+/*----------------------------------------------------------------------------*/
+AIORET_TYPE AIOContinuousBufSetDebug( AIOContinuousBuf *buf, AIOUSB_BOOL debug )
+{
+    if ( !buf )
+        return -AIOUSB_ERROR_INVALID_AIOCONTINUOUS_BUFFER;
+
+    AIOContinuousBufLock( buf );
+    AIORESULT result = AIOUSB_SUCCESS;
+    AIOUSBDevice *device = AIODeviceTableGetDeviceAtIndex( AIOContinuousBufGetDeviceIndex(buf), &result );
+    if ( result != AIOUSB_SUCCESS )
+        return -result;
+
+    result = ADCConfigBlockSetDebug( AIOUSBDeviceGetADCConfigBlock( device ), debug );
+    if ( result != AIOUSB_SUCCESS )
+        return -result;
+
+    buf->debug = debug;
+    AIOContinuousBufUnlock( buf );
+    return result;
+}
+
+/*----------------------------------------------------------------------------*/
+AIORET_TYPE AIOContinuousBufGetDebug( AIOContinuousBuf *buf )
+{
+    if ( !buf )
+        return -AIOUSB_ERROR_INVALID_AIOCONTINUOUS_BUFFER;
+    return buf->debug;
+}
+
+
 
 /*----------------------------------------------------------------------------*/
 AIORET_TYPE AIOContinuousBuf_SetDeviceIndex( AIOContinuousBuf *buf , unsigned long DeviceIndex ) { return AIOContinuousBufSetDeviceIndex( buf, DeviceIndex ); }

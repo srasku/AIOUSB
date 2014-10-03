@@ -7,11 +7,11 @@
  * AIOUSB library sample program
  */
 
-
 #include <aiousb.h>
 #include <math.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "ADCConfigBlock.h"
 
 int main( int argc, char **argv ) {
   
@@ -87,16 +87,15 @@ int main( int argc, char **argv ) {
    * send the new settings to the device immediately; here we demonstrate the
    * ADConfigBlock technique; below we demonstrate use of the discrete functions
    */
-  ADConfigBlock configBlock;
-
+  ADCConfigBlock configBlock;
 
 
   AIOUSB_InitConfigBlock( &configBlock, deviceIndex, AIOUSB_FALSE );
-  AIOUSB_SetAllGainCodeAndDiffMode( &configBlock, AD_GAIN_CODE_10V, AIOUSB_FALSE );
-  AIOUSB_SetCalMode( &configBlock, AD_CAL_MODE_NORMAL );
-  AIOUSB_SetTriggerMode( &configBlock, 0 );
-  AIOUSB_SetScanRange( &configBlock, 2, 13 );
-  AIOUSB_SetOversample( &configBlock, 0 );
+  ADCConfigBlockSetAllGainCodeAndDiffMode( &configBlock, AD_GAIN_CODE_10V, AIOUSB_FALSE );
+  ADCConfigBlockSetCalMode( &configBlock, AD_CAL_MODE_NORMAL );
+  ADCConfigBlockSetTriggerMode( &configBlock, 0 );
+  ADCConfigBlockSetScanRange( &configBlock, 2, 13 );
+  ADCConfigBlockSetOversample( &configBlock, 0 );
   result = ADC_SetConfig( deviceIndex, configBlock.registers, &configBlock.size );
 
 

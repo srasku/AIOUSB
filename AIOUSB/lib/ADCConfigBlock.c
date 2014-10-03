@@ -131,6 +131,21 @@ AIORET_TYPE ADCConfigBlockSetTesting( ADCConfigBlock *obj, AIOUSB_BOOL testing )
 }
 
 /*----------------------------------------------------------------------------*/
+AIORET_TYPE ADCConfigBlockSetDebug( ADCConfigBlock *obj, AIOUSB_BOOL debug ) 
+{
+    AIORET_TYPE result = AIOUSB_SUCCESS;
+    assert(obj);
+    if ( !obj ) 
+        return -AIOUSB_ERROR_INVALID_PARAMETER;
+    obj->debug = debug;
+    return result;
+}
+
+
+
+
+
+/*----------------------------------------------------------------------------*/
 unsigned char *ADCConfigBlockGetRegisters( ADCConfigBlock *config )
 {
     assert(config);
@@ -187,6 +202,16 @@ AIORET_TYPE ADCConfigBlockGetTesting( const ADCConfigBlock *obj)
         return -AIOUSB_ERROR_INVALID_PARAMETER;
     return obj->testing;
 }
+
+/*----------------------------------------------------------------------------*/
+AIORET_TYPE ADCConfigBlockGetDebug( const ADCConfigBlock *obj) 
+{
+    assert(obj);
+    if ( !obj ) 
+        return -AIOUSB_ERROR_INVALID_ADCCONFIG;
+    return obj->debug;
+}
+
 
 /** 
  * @brief 
@@ -889,10 +914,6 @@ ADCConfigBlock *NewADCConfigBlockFromJSON( char *str )
 
     return adc;
 }
-
-
-
-
 
 #ifdef __cplusplus
 }

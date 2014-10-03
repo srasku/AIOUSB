@@ -27,6 +27,7 @@ typedef struct adc_config_block {
     unsigned timeout;
     ADCMuxSettings mux_settings;
     AIOUSB_BOOL discardFirstSample;
+    AIOUSB_BOOL debug;
 } ADCConfigBlock;
 
 typedef struct lookup { 
@@ -79,6 +80,10 @@ PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockInitialize( ADCConfigBlock *config , AIO
 
 PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockSetTesting( ADCConfigBlock *obj, AIOUSB_BOOL testing );
 PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockGetTesting( const ADCConfigBlock *obj );
+
+PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockSetDebug( ADCConfigBlock *obj, AIOUSB_BOOL debug );
+PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockGetDebug( const ADCConfigBlock *obj );
+
 
 /* JSON API */
 char *ADCConfigBlockToJSON(ADCConfigBlock *config);

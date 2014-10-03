@@ -72,7 +72,7 @@ main(int argc, char *argv[] )
       _exit(1);
     }
     if( options.reset ) {
-      AIOContinuousBuf_ResetDevice( buf );
+      AIOContinuousBufResetDevice( buf );
       _exit(0);
     }
     FILE *fp = fopen(options.outfile,"w");

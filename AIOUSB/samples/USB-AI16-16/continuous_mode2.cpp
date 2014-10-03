@@ -34,7 +34,7 @@ main(int argc, char *argv[] )
   /**
    * 1. Each buf should have a device index associated with it, so 
    */
-  AIOContinuousBuf_SetDeviceIndex( buf, 0 );
+  AIOContinuousBufSetDeviceIndex( buf, 0 );
 
   /**
    * 2. Setup the Config object for Acquisition
