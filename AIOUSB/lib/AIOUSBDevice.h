@@ -4,6 +4,7 @@
 #include "AIOTypes.h"
 #include "ADCConfigBlock.h"
 #include "USBDevice.h"
+#include "cJSON.h"
 #include <string.h>
 #include <semaphore.h>
 #include <libusb.h>
@@ -96,6 +97,10 @@ typedef struct aio_usb_driver {
     AIOUSB_BOOL valid;
 } AIOUSBDevice;
 
+
+char *AIOUSBDeviceToJSON( AIOUSBDevice *device );
+AIOUSBDevice *NewAIOUSBDeviceFromJSON( char *str );
+
 AIORET_TYPE AIOUSBDeviceInitializeWithProductID( AIOUSBDevice *device , ProductIDS productID );
 USBDevice *AIOUSBDeviceGetUSBHandle( AIOUSBDevice *dev );
 USBDevice *AIOUSBDeviceGetUSBHandleFromDeviceIndex( unsigned long DeviceIndex, AIOUSBDevice **dev, AIORESULT *result );
@@ -112,6 +117,8 @@ AIORET_TYPE AIOUSBDeviceGetTesting( AIOUSBDevice *dev  );
 AIORET_TYPE AIOUSBDeviceGetStreamingBlockSize( AIOUSBDevice *deviceDesc );
 AIORET_TYPE AIOUSBDeviceGetDiscardFirstSample( AIOUSBDevice *device );
 AIORET_TYPE AIOUSBDeviceSetDiscardFirstSample( AIOUSBDevice *device , AIOUSB_BOOL discard );
+AIORET_TYPE AIOUSBDeviceSetTimeout( AIOUSBDevice *device, unsigned timeout );
+AIORET_TYPE AIOUSBDeviceGetTimeout( AIOUSBDevice *device );
 
 
 #ifdef __aiousb_cplusplus

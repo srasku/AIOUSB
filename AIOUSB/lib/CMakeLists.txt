@@ -70,6 +70,8 @@ SET( tmp_aiousb_files
   "${CMAKE_CURRENT_SOURCE_DIR}/DIOBuf.c" 
   "${CMAKE_CURRENT_SOURCE_DIR}/USBDevice.c" 
   "${CMAKE_CURRENT_SOURCE_DIR}/cJSON.c" 
+  "${CMAKE_CURRENT_SOURCE_DIR}/AIOCommandLine.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/AIOConfiguration.c"
   )
 
 

@@ -438,6 +438,18 @@ static const char *parse_object(cJSON *item,const char *value)
 	ep=value;return 0;	/* malformed. */
 }
 
+/*Added function to return value as an integer */
+
+int cJSON_AsInteger( cJSON *item )
+{
+    if ( !item->valuestring )
+        return item->valueint;
+    else 
+        return atoi(item->valuestring);
+}
+
+
+
 /* Render an object to text. */
 static char *print_object(cJSON *item,int depth,int fmt)
 {

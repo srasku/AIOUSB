@@ -1679,6 +1679,59 @@ AIORET_TYPE AIOContinuousBufSetChannelRange( AIOContinuousBuf *buf,
 }
 
 /*----------------------------------------------------------------------------*/
+/* AIORET_TYPE AIOContinuousBufSetTimeout( AIOContinuousBuf *buf, unsigned timeout )  */
+/* { */
+/*     AIORET_TYPE retval = AIOUSB_SUCCESS; */
+/*     AIORESULT result = AIOUSB_SUCCESS; */
+/*     if ( !buf )  */
+/*         return -AIOUSB_ERROR_INVALID_AIOCONTINUOUS_BUFFER; */
+/*     AIOUSBDevice *device = AIODeviceTableGetDeviceAtIndex( AIOContinuousBufGetDeviceIndex(buf) , &result ); */
+/*     if ( result != AIOUSB_SUCCESS ){ */
+/*         AIOUSB_UnLock(); */
+/*         return -abs(result); */
+/*     } */
+/*     device->commTimeout = timeout; */
+/*     retval = ADCConfigBlockSetTimeout( AIOUSBDeviceGetADCConfigBlock( device ), timeout ); */
+/*     buf->timeout = timeout; */
+/*     return retval; */
+/* } */
+/* AIORET_TYPE AIOContinuousBufGetTimeout( AIOContinuousBuf *buf )  */
+/* { */
+/*     if ( !buf )  */
+/*         return -AIOUSB_ERROR_INVALID_AIOCONTINUOUS_BUFFER; */
+/*     return buf->timeout; */
+/* } */
+
+/*----------------------------------------------------------------------------*/
+PUBLIC_EXTERN AIORET_TYPE AIOContinuousBufSetTimeout( AIOContinuousBuf *buf, unsigned timeout )
+{
+    assert(buf);
+    AIOContinuousBufLock( buf );
+    AIORET_TYPE retval = AIOUSB_SUCCESS;
+    AIORESULT result = AIOUSB_SUCCESS;
+    AIOUSBDevice *dev = AIODeviceTableGetDeviceAtIndex( AIOContinuousBufGetDeviceIndex( buf ), &result );
+    if ( result != AIOUSB_SUCCESS ) 
+        return -AIOUSB_ERROR_INVALID_DEVICE_SETTING;
+
+    retval = AIOUSBDeviceSetTimeout( dev, timeout );
+    if ( retval != AIOUSB_SUCCESS )
+        return retval;
+    buf->timeout = timeout;
+
+    AIOContinuousBufUnlock( buf );
+    return retval;
+}
+
+PUBLIC_EXTERN AIORET_TYPE AIOContinuousBufGetTimeout( AIOContinuousBuf *buf )
+{
+    assert(buf);
+    if (!buf )
+        return -AIOUSB_ERROR_INVALID_DEVICE;
+    
+    return buf->timeout;
+}
+
+/*----------------------------------------------------------------------------*/
 AIORET_TYPE AIOContinuousBuf_SetOverSample( AIOContinuousBuf *buf, unsigned os ) { return AIOContinuousBufSetOverSample(buf,os);}
 AIORET_TYPE AIOContinuousBufSetOverSample( AIOContinuousBuf *buf, unsigned os )
 {

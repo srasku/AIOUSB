@@ -351,6 +351,8 @@ CREATE_ENUM_W_START( ResultCode, 0,
                      AIOUSB_ERROR_INVALID_DEVICE_CHANNEL_SETTING,
                      AIOUSB_ERROR_INVALID_DEVICE_MUX_CHANNEL_SETTING,
                      AIOUSB_ERROR_INVALID_CONFIG,
+                     AIOUSB_ERROR_INVALID_AIOCONFIGURATION,
+                     AIOUSB_ERROR_INVALID_AIOARGUMENT,
                      AIOUSB_ERROR_INVALID_ADCCONFIG,
                      AIOUSB_ERROR_INVALID_ADCCONFIG_SETTING,
                      AIOUSB_ERROR_INVALID_ADCCONFIG_TRIGGER_SETTING,
@@ -418,11 +420,12 @@ enum {
                                               /* gain codes for channels 1-15 occupy configuration block indexes 1-15 */
     AD_REGISTER_GAIN_CODE               = 0,
 
-    AD_CONFIG_CAL_MODE                  = 16, /* calibration mode (one of AD_CAL_MODE_* settings below) */
-    AD_CONFIG_TRIG_COUNT                = 17, /* trigger and counter clock (one of AD_TRIG_* settings below) */
-    AD_CONFIG_START_END                 = 18, /* start and end channels for scan (bits 7-4 contain end channel, bits 3-0 contain start channel) */
-    AD_CONFIG_OVERSAMPLE                = 19, /* oversample setting (0-255 samples in addition to single sample) */
-    AD_CONFIG_MUX_START_END             = 20, /* MUX start and end channels for scan (bits 7-4 contain end channel MS-nibble, bits 3-0 contain start channel MS-nibble) */
+    /*Codes defined in the USB Software Reference Manual */
+    AD_CONFIG_CAL_MODE                  = 0x10, /* calibration mode (one of AD_CAL_MODE_* settings below) */
+    AD_CONFIG_TRIG_COUNT                = 0x11, /* trigger and counter clock (one of AD_TRIG_* settings below) */
+    AD_CONFIG_START_END                 = 0x12, /* start and end channels for scan (bits 7-4 contain end channel, bits 3-0 contain start channel) */
+    AD_CONFIG_OVERSAMPLE                = 0x13, /* oversample setting (0-255 samples in addition to single sample) */
+    AD_CONFIG_MUX_START_END             = 0x14, /* MUX start and end channels for scan (bits 7-4 contain end channel MS-nibble, bits 3-0 contain start channel MS-nibble) */
     AD_CONFIG_START_STOP_CHANNEL_EX     = 21,
 
     /* A/D gain codes */

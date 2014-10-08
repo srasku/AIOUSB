@@ -24,6 +24,8 @@ AIODeviceTable.o \
 AIOUSBDevice.o \
 AIOChannelRange.o \
 ADCConfigBlock.o \
+AIOCommandLine.o \
+AIOConfiguration.o \
 cJSON.o
 
 include $(AIOUSB_ROOT)/Mkfiles/oses.inc
@@ -71,7 +73,7 @@ LIBS 		:= $(CLIB) $(CDBGLIB) $(CPPLIB) $(CPPDBGLIB)  $(SHCLIB) $(SHCDBGLIB) $(SH
 override CFLAGS	+= -I. -I/usr/include/libusb-1.0 -std=gnu99
 TESTFLAGS	:= -g
 SHARED_LIBS	:=  -lusb-1.0 -pthread -lm
-override CXXFLAGS += -I/usr/include/libusb-1.0 -D__aiousb_cplusplus
+override CXXFLAGS += -I/usr/include/libusb-1.0 -I$$AIO_LIB_DIR -D__aiousb_cplusplus
 
 .PHONY : all testit
 
@@ -147,7 +149,7 @@ endif
 
 EXTRA_COPTS		:= -std=gnu99 -D_GNU_SOURCE
 SELF_TEST_FLAGS		:= -DSELF_TEST
-SELF_TEST_LIBS		:= -lm -lpthread -laiousbdbg -lusb-1.0
+SELF_TEST_LIBS		:= -lm -lpthread -lusb-1.0
 SELF_TEST_CXX_FLAGS	:= -D__aiousb_cplusplus -DSELF_TEST 
 SELF_TEST_CXX_LIBS	:= $(SELF_TEST_LIBS) -laiousbcppdbg -lgtest
 
@@ -180,6 +182,10 @@ pywrapper:
 
 %_cpp_test: %.c $(SHCDBGLIB) $(SHCPPDBGLIB)
 	$(CXX) $(TESTFLAGS) $(SELF_TEST_CXX_FLAGS) $(subst _cpp_test,.c,$<) -o $@ -L. $(SELF_TEST_CXX_LIBS)
+
+
+tests/%_cpp_test: tests/%.cpp $(SHCDBGLIB) $(SHCPPDBGLIB)
+	$(CXX) $(TESTFLAGS) $(CXXFLAGS) $< -o $@ -L. $(SELF_TEST_CXX_LIBS)
 
 mostlyclean:
 	-rm -f $(COBJS) $(CDBGOBJS) $(CPPOBJS) $(CPPDBGOBJS) 

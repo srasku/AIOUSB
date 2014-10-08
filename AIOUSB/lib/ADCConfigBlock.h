@@ -17,6 +17,7 @@ typedef struct aio_usb_driver AIOUSBDevice ;
 typedef struct mux_settings {
     int ADCChannelsPerGroup;
     int ADCMUXChannels;
+    AIOUSB_BOOL defined;
 } ADCMuxSettings;
 
 typedef struct adc_config_block {
@@ -51,6 +52,10 @@ PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockSetGainCode(ADCConfigBlock *config, unsi
 
 
 PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockSetScanRange(ADCConfigBlock *config, unsigned startChannel, unsigned endChannel);
+PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockSetStartChannel( ADCConfigBlock *config, unsigned char startChannel  );
+PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockSetEndChannel( ADCConfigBlock *config, unsigned char endChannel  );
+#define HIGH_BITS(reg)   ( reg & 0xF0 )
+#define LOW_BITS(reg)    ( reg & 0x0F )
 
 
 PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockSetCalMode(ADCConfigBlock *config, ADCalMode calMode);
@@ -64,6 +69,9 @@ PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockGetEndChannel(const ADCConfigBlock *conf
 
 PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockGetOversample( const ADCConfigBlock *config );
 PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockSetOversample( ADCConfigBlock *config, unsigned overSample );
+
+PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockGetTimeout( const ADCConfigBlock *config );
+PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockSetTimeout( ADCConfigBlock *config, unsigned timeout );
 
 PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockGetTriggerMode(const ADCConfigBlock *config);
 PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockSetTriggerMode(ADCConfigBlock *config, unsigned triggerMode);
@@ -88,6 +96,7 @@ PUBLIC_EXTERN AIORET_TYPE ADCConfigBlockGetDebug( const ADCConfigBlock *obj );
 /* JSON API */
 char *ADCConfigBlockToJSON(ADCConfigBlock *config);
 ADCConfigBlock *NewADCConfigBlockFromJSON( char *str );
+AIORET_TYPE DeleteADCConfigBlock( ADCConfigBlock *config );
 
 
 #ifndef SWIG

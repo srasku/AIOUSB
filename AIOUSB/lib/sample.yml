@@ -1,0 +1,32 @@
+---
+adcconfig:
+  channels:
+    - gain: 0-10V
+    - gain: 0-10V
+    - gain: 0-10V
+    - gain: 0-2V
+    - gain: 0-2V
+    - gain: 0-2V
+    - gain: +/-5V
+    - gain: +/-5V
+    - gain: +/-5V
+    - gain: 0-10V
+    - gain: 0-10V
+    - gain: 0-10V
+    - gain: 0-10V
+    - gain: 0-10V
+    - gain: 0-10V
+    - gain: 0-10V
+  calibration: Normal
+  trigger:
+     reference: sw
+     edge: rising-edge
+     refchannel: single-channel
+  start_channel: 0
+  end_channel: 15
+  oversample: 201
+  mux_settings:
+    adc_channels_per_group: 1
+    adc_mux_channels: 16
+    
+        

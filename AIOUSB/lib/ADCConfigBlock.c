@@ -2,6 +2,7 @@
 #include "AIOUSBDevice.h"
 #include "AIOUSB_Core.h"
 #include "cJSON.h"
+#include <ctype.h>
 
 #ifdef __cplusplus
 namespace AIOUSB {
@@ -10,6 +11,10 @@ namespace AIOUSB {
 /*----------------------------------------------------------------------------*/
 AIORET_TYPE ADCConfigBlockCopy( ADCConfigBlock *to, ADCConfigBlock *from ) 
 {
+    assert(to != NULL && from != NULL );
+    if ( !to || !from ) 
+        return -AIOUSB_ERROR_INVALID_ADCCONFIG;
+
     AIORET_TYPE result = AIOUSB_SUCCESS;
     if ( from->size <  AD_CONFIG_REGISTERS )
         return -AIOUSB_ERROR_INVALID_PARAMETER;
@@ -24,7 +29,7 @@ AIORET_TYPE ADCConfigBlockCopy( ADCConfigBlock *to, ADCConfigBlock *from )
 }
 
 /*----------------------------------------------------------------------------*/
-AIORET_TYPE DeleteADCConfig( ADCConfigBlock *config )
+AIORET_TYPE DeleteADCConfigBlock( ADCConfigBlock *config )
 {
     assert(config);
     if (!config )
@@ -275,7 +280,7 @@ void ADC_VerifyAndCorrectConfigBlock( ADCConfigBlock *configBlock , AIOUSBDevice
 AIORET_TYPE ADCConfigBlockSetAllGainCodeAndDiffMode(ADCConfigBlock *config, unsigned gainCode, AIOUSB_BOOL differentialMode)
 {
     AIORET_TYPE retval = AIOUSB_SUCCESS;
-    if (!config || !config->device || !config->size ) 
+    if (!config || !config->size ) 
         return -AIOUSB_ERROR_INVALID_ADCCONFIG;
 
     if ( !VALID_ENUM( ADGainCode, gainCode ) ) 
@@ -321,7 +326,7 @@ AIORET_TYPE ADCConfigBlockSetGainCode(ADCConfigBlock *config, unsigned channel, 
     AIOUSBDevice *deviceDesc = ADCConfigBlockGetAIOUSBDevice( config , &result );
     if ( result != AIOUSB_SUCCESS ){
         AIOUSB_UnLock();
-        return result;
+        return -abs(result);
     }
     if ( !deviceDesc->ADCChannelsPerGroup  )
         return  -AIOUSB_ERROR_INVALID_DEVICE_SETTING;
@@ -339,16 +344,48 @@ AIORET_TYPE ADCConfigBlockSetGainCode(ADCConfigBlock *config, unsigned channel, 
     return result;
 }
 
+
+AIORET_TYPE ADCConfigBlockSetEndChannel( ADCConfigBlock *config, unsigned char endChannel  )
+{
+    if (!config || !config->size )
+        return -AIOUSB_ERROR_INVALID_ADCCONFIG;
+    if ( config->size == AD_MUX_CONFIG_REGISTERS) {
+        config->registers[ AD_CONFIG_START_END ]         = (unsigned char)((LOW_BITS(endChannel)<<4 )  | LOW_BITS(config->registers[ AD_CONFIG_START_END ]      ));
+        config->registers[ AD_CONFIG_MUX_START_END ]     = (unsigned char)( HIGH_BITS(endChannel)      | LOW_BITS(config->registers[ AD_CONFIG_MUX_START_END ]  ));
+    } else {
+        config->registers[ AD_CONFIG_START_END ]         = (unsigned char)((LOW_BITS(endChannel)<< 4)  | LOW_BITS(config->registers[ AD_CONFIG_START_END ]      ));
+    }
+    return AIOUSB_SUCCESS;
+}
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @see USB_SOFTWARE_MANUAL
+ */
+AIORET_TYPE ADCConfigBlockSetStartChannel( ADCConfigBlock *config, unsigned char startChannel  )
+{
+    if (!config || !config->size )
+        return -AIOUSB_ERROR_INVALID_ADCCONFIG;
+    if ( config->size == AD_MUX_CONFIG_REGISTERS) {
+        config->registers[ AD_CONFIG_START_END ]     = (unsigned char)( HIGH_BITS(config->registers[ AD_CONFIG_START_END ])     | LOW_BITS(startChannel));
+        config->registers[ AD_CONFIG_MUX_START_END ] = (unsigned char)( HIGH_BITS(config->registers[ AD_CONFIG_MUX_START_END ]) | ( HIGH_BITS(startChannel) >> 4 ));
+    } else {
+        config->registers[ AD_CONFIG_START_END ]     = (unsigned char)( HIGH_BITS(config->registers[ AD_CONFIG_START_END ] )    | LOW_BITS( startChannel ));
+    }
+    return AIOUSB_SUCCESS;
+}
+
 /*----------------------------------------------------------------------------*/
 AIORET_TYPE ADCConfigBlockSetScanRange(ADCConfigBlock *config, unsigned startChannel, unsigned endChannel)
 {
     AIORET_TYPE retval = AIOUSB_SUCCESS;
-    if (!config || !config->device || !config->size )
+    if (!config || !config->size )
         return -AIOUSB_ERROR_INVALID_ADCCONFIG;
 
     AIOUSBDevice * deviceDesc = ( AIOUSBDevice* )config->device;
+    unsigned adcmux_channels = ( deviceDesc ? deviceDesc->ADCMUXChannels : ( config->mux_settings.defined ? config->mux_settings.ADCMUXChannels : 0 ));
     if( endChannel < AD_MAX_CHANNELS && 
-        endChannel < deviceDesc->ADCMUXChannels &&
+        endChannel <= adcmux_channels &&
         startChannel <= endChannel
         ) {
         if(config->size == AD_MUX_CONFIG_REGISTERS) {
@@ -366,7 +403,7 @@ AIORET_TYPE ADCConfigBlockSetScanRange(ADCConfigBlock *config, unsigned startCha
         }
     }
 
- return retval;
+    return retval;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -399,7 +436,7 @@ AIORET_TYPE ADCConfigBlockGetCalMode(const ADCConfigBlock *config)
 AIORET_TYPE ADCConfigBlockGetStartChannel( const ADCConfigBlock *config)
 {
     AIORET_TYPE result = AIOUSB_SUCCESS;
-    if ( !config || !config->device || config->size == 0 )
+    if ( !config || config->size == 0 )
         return -AIOUSB_ERROR_INVALID_ADCCONFIG;
 
 
@@ -415,7 +452,7 @@ AIORET_TYPE ADCConfigBlockGetStartChannel( const ADCConfigBlock *config)
 AIORET_TYPE ADCConfigBlockGetEndChannel( const ADCConfigBlock *config)
 {
     AIORET_TYPE endChannel = AIOUSB_SUCCESS;
-    if (!config || !config->device || !config->size ) 
+    if (!config || !config->size ) 
         return -AIOUSB_ERROR_INVALID_ADCCONFIG;
 
     if ( config->size == AD_MUX_CONFIG_REGISTERS)
@@ -448,22 +485,21 @@ AIORET_TYPE ADCConfigBlockSetOversample( ADCConfigBlock *config, unsigned overSa
 }
 
 /*----------------------------------------------------------------------------*/
-AIORET_TYPE ADCConfigBlockSetTimeout( ADCConfigBlock *adc, unsigned timeout )
+AIORET_TYPE ADCConfigBlockGetTimeout( const ADCConfigBlock *config )
 {
-    AIORET_TYPE result = AIOUSB_SUCCESS;
-    if ( !adc ) 
+    if ( !config ) 
         return -AIOUSB_ERROR_INVALID_ADCCONFIG;
-    adc->timeout = timeout;
-    return result;
+    return config->timeout;
 }
 
-/*----------------------------------------------------------------------------*/
-AIORET_TYPE ADCConfigBlockGetTimeout( ADCConfigBlock *adc )
+AIORET_TYPE ADCConfigBlockSetTimeout( ADCConfigBlock *config, unsigned timeout )
 {
-    if ( !adc ) 
+    if ( !config ) 
         return -AIOUSB_ERROR_INVALID_ADCCONFIG;
-    return adc->timeout;
+    config->timeout = timeout;
+    return AIOUSB_SUCCESS;
 }
+
 
 /*----------------------------------------------------------------------------*/
 AIORET_TYPE ADCConfigBlockGetTriggerMode(const ADCConfigBlock *config)
@@ -770,6 +806,15 @@ AIORET_TYPE ADCConfigBlockSetTriggerReference( ADCConfigBlock *config, int val )
     return _assist_trigger_select(config, val, val );
 }
 
+AIOUSB_BOOL is_all_digits( char *str )
+{
+    AIOUSB_BOOL found = AIOUSB_TRUE;
+    for(char *a = str; a < strlen(str)+str; a+=1)
+        found &= ( isdigit(*a) != 0 );
+    return found;
+}
+
+
 /*----------------------------------------------------------------------------*/
 cJSON *ADCConfigBlockGetJSONValueOrDefault( cJSON *config,
                                             char const *key, 
@@ -784,14 +829,22 @@ cJSON *ADCConfigBlockGetJSONValueOrDefault( cJSON *config,
     if ( config && (tmp = cJSON_GetObjectItem(config, key ) ) ) {
         /* \"calibration\":\"Normal\" */
         char *foo = tmp->valuestring;
-        for ( size_t j = 0; j < size ; j ++ ) {
-            if ( strcasecmp(foo, lookup[j].str ) == 0 )  {
-                retval.valuestring = (char *)lookup[j].strvalue;
-                retval.valueint = lookup[j].value;
-                retval.valuedouble = (double)lookup[j].value;
-                found = 1;
-                break;
+
+        if( !is_all_digits(foo) ) { 
+            for ( size_t j = 0; j < size ; j ++ ) {
+                if ( strcasecmp(foo, lookup[j].str ) == 0 )  {
+                    retval.valuestring = (char *)lookup[j].strvalue;
+                    retval.valueint = lookup[j].value;
+                    retval.valuedouble = (double)lookup[j].value;
+                    found = 1;
+                    break;
+                }
             }
+        } else {
+            retval.valuestring = foo;
+            retval.valueint = atoi(foo);
+            retval.valuedouble = (double)atol(foo);
+            found = 1;
         }
     }
     if (!found ) {
@@ -833,8 +886,11 @@ ADCConfigBlock *NewADCConfigBlockFromJSON( char *str )
             adc->mux_settings.ADCMUXChannels = atoi( muxsettings->valuestring );
         }
 
-        if ( !found ) 
+        if ( !found ) {
             adc->mux_settings.ADCChannelsPerGroup = adc->mux_settings.ADCMUXChannels = -1;
+        } else {
+            adc->mux_settings.defined = AIOUSB_TRUE;
+        }
     }
 
     if ( (tmp = cJSON_GetObjectItem(adcconfig,"channels") ) ) {
@@ -894,24 +950,27 @@ ADCConfigBlock *NewADCConfigBlockFromJSON( char *str )
                                                 sizeof(StartChannel)/sizeof(EnumStringLookup)
                                                 );
 
-    ADCConfigBlockSetScanRange( adc, tmp->valueint , ADCConfigBlockGetEndChannel(adc) );
+    ADCConfigBlockSetStartChannel( adc , cJSON_AsInteger(tmp) );
     tmp =  ADCConfigBlockGetJSONValueOrDefault( adcconfig, 
                                                "end_channel", 
                                                 EndChannel, 
                                                 sizeof(EndChannel)/sizeof(EnumStringLookup)
                                                 );
-    ADCConfigBlockSetScanRange( adc, ADCConfigBlockGetStartChannel(adc), tmp->valueint );
+
+    ADCConfigBlockSetEndChannel( adc , cJSON_AsInteger(tmp) );
 
     if ( ( tmp = cJSON_GetObjectItem(adcconfig,"oversample" ) ) )
-        ADCConfigBlockSetOversample( adc, atoi(tmp->valuestring) );
+        ADCConfigBlockSetOversample( adc, cJSON_AsInteger(tmp)  );
     else 
         ADCConfigBlockSetOversample( adc, 0 );
 
     if ( ( tmp = cJSON_GetObjectItem(adcconfig,"timeout" )) ) 
-        ADCConfigBlockSetTimeout( adc, atoi(tmp->valuestring));
+        ADCConfigBlockSetTimeout( adc, cJSON_AsInteger(tmp) );
     else
         ADCConfigBlockSetTimeout( adc, 1000 ); /* 1000 uS */
 
+    if ( json ) 
+        cJSON_Delete(json);
     return adc;
 }
 
@@ -979,6 +1038,7 @@ TEST(ADCConfigBlock, JSONRepresentation)
     EXPECT_STREQ("{\"adcconfig\":{\"channels\":[{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-2V\"},{\"gain\":\"0-2V\"},{\"gain\":\"0-2V\"},{\"gain\":\"+-5V\"},{\"gain\":\"+-5V\"},{\"gain\":\"+-5V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"}],\"calibration\":\"Normal\",\"trigger\":{\"reference\":\"sw\",\"edge\":\"rising-edge\",\"refchannel\":\"single-channel\"},\"start_channel\":\"0\",\"end_channel\":\"15\",\"oversample\":\"201\",\"timeout\":\"1000\"}}", 
                  ADCConfigBlockToJSON( &config ) );
 
+
     ADCConfigBlockSetOversample( &config, 102 );
     EXPECT_STREQ("{\"adcconfig\":{\"channels\":[{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-2V\"},{\"gain\":\"0-2V\"},{\"gain\":\"0-2V\"},{\"gain\":\"+-5V\"},{\"gain\":\"+-5V\"},{\"gain\":\"+-5V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"},{\"gain\":\"0-10V\"}],\"calibration\":\"Normal\",\"trigger\":{\"reference\":\"sw\",\"edge\":\"rising-edge\",\"refchannel\":\"single-channel\"},\"start_channel\":\"0\",\"end_channel\":\"15\",\"oversample\":\"102\",\"timeout\":\"1000\"}}", 
                  ADCConfigBlockToJSON( &config ) );
@@ -1026,6 +1086,32 @@ TEST( ADCConfigBlock, CanSetDevice )
 
     EXPECT_EQ( ADCConfigBlockGetAIOUSBDevice( &tmp, NULL ), &device );
 }
+
+TEST( ADCConfigBlock, SetRange )
+{
+    ADCConfigBlock config;
+    config.size = 21;
+    ADCConfigBlockSetStartChannel( &config, 0 );
+    ADCConfigBlockSetEndChannel( &config, 63 );
+
+    EXPECT_EQ( 0xF0, config.registers[ AD_CONFIG_START_END ] );
+    EXPECT_EQ( 0x30, config.registers[ AD_CONFIG_MUX_START_END ] );
+
+    ADCConfigBlockSetStartChannel( &config, 7 );
+    ADCConfigBlockSetEndChannel( &config, 0x6B );
+
+    EXPECT_EQ( 0xB7, config.registers[ AD_CONFIG_START_END ] );
+    EXPECT_EQ( 0x60, config.registers[ AD_CONFIG_MUX_START_END ] );
+
+    config.size = 20;
+    ADCConfigBlockSetStartChannel( &config, 1 );
+    ADCConfigBlockSetEndChannel( &config, 13 );
+
+    EXPECT_EQ( 1, ADCConfigBlockGetStartChannel( &config ));
+    EXPECT_EQ( 13, ADCConfigBlockGetEndChannel( &config ));
+    
+}
+
 
 int main(int argc, char *argv[] )
 {
