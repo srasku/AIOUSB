@@ -16,20 +16,20 @@ struct channel_range {
 };
 
 struct opts {
-    unsigned num_scans;
-    unsigned num_channels;
-    unsigned num_oversamples;
-    int gain_code;
-    unsigned max_count;
-    int clock_rate;
-    char *outfile;
-    int reset;
-    int debug_level;
-    int number_ranges;
-    int verbose;
-    int start_channel;
-    int end_channel;
-    struct channel_range **ranges;
+    unsigned num_scans;         /* 100 thousand */
+    unsigned num_channels;      /* 16 */
+    unsigned num_oversamples;   /* 0 */
+    int gain_code;              /* AD_GAIN_CODE_0_5V */
+    unsigned max_count;         /* 4 million */
+    int clock_rate;             /* 10 thousand */
+    char *outfile;              /* output.txt */
+    int reset;                  /* 0 */
+    int debug_level;            /* AIODEFAULT_LOG_LEVEL */
+    int number_ranges;          /* 0 */
+    int verbose;                /* 0 */
+    int start_channel;          /* 0 */
+    int end_channel;            /* 15 */
+    struct channel_range **ranges; /* NULL */
 };
 
 struct channel_range *get_channel_range( char *optarg );
