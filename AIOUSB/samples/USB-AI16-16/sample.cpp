@@ -120,6 +120,7 @@ int main( int argc, char **argv ) {
     // calibration_type = strdup(":1TO1:");
     calibration_type = strdup(":AUTO:");
 
+#if 0
     result = ADC_SetCal( deviceIndex, calibration_type ); /**demonstrate automatic A/D calibration */
 
     if( result == AIOUSB_SUCCESS ) {
@@ -135,6 +136,7 @@ int main( int argc, char **argv ) {
     ADC_SetOversample( deviceIndex, 0 );
     ADC_SetScanLimits( deviceIndex, CAL_CHANNEL, CAL_CHANNEL );
     ADC_ADMode( deviceIndex, 0 , AD_CAL_MODE_GROUND );
+#endif
 
     result = ADC_GetScan( deviceIndex, counts );
 
