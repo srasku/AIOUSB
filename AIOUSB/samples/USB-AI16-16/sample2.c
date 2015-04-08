@@ -178,7 +178,7 @@ int main( int argc, char **argv ) {
      * demonstrate scanning channels and measuring voltages
      */
     for( int channel = 0; channel < NUM_CHANNELS; channel++ )
-        gainCodes[ channel ] = AD_GAIN_CODE_0_10V;
+        gainCodes[ channel ] = AD_GAIN_CODE_10V;
 
     ADC_RangeAll( deviceIndex, gainCodes, AIOUSB_TRUE );
     ADC_SetOversample( deviceIndex, NUM_OVERSAMPLES );
