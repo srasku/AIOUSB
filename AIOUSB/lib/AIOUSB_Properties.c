@@ -117,9 +117,9 @@ unsigned long AIOUSB_GetDeviceByProductID(int minProductID,
 }
 
 /*----------------------------------------------------------------------------*/
-AIORET_TYPE AIOUSB_GetDeviceSerialNumber( unsigned long DeviceIndex ) 
+AIORET_TYPE AIOUSB_GetDeviceSerialNumber( unsigned long  DeviceIndex ) 
 {
-    unsigned long val = 0;
+    uint64_t val = 0;
     unsigned long retval;
     retval = GetDeviceSerialNumber( DeviceIndex, &val );
     if( retval != AIOUSB_SUCCESS ) {
@@ -135,21 +135,22 @@ AIORET_TYPE AIOUSB_GetDeviceSerialNumber( unsigned long DeviceIndex )
  * @param pSerialNumber 
  * @return 0 if successful, otherwise
  */
-AIORESULT GetDeviceSerialNumber(unsigned long DeviceIndex, unsigned long *pSerialNumber ) 
+AIORESULT GetDeviceSerialNumber(unsigned long DeviceIndex, uint64_t *pSerialNumber ) 
 {
     if( !pSerialNumber )
         return AIOUSB_ERROR_INVALID_PARAMETER;
 
-    unsigned long bytes_read = sizeof(unsigned long);
-    unsigned long buffer_data;
+    unsigned long bytes_read = sizeof(uint64_t);
+    uint64_t buffer_data = -1;
     AIORESULT result = AIOUSB_SUCCESS;
-    AIODeviceTableGetDeviceAtIndex( DeviceIndex, &result );
 
+    AIODeviceTableGetDeviceAtIndex( DeviceIndex, &result );
     result = GenericVendorRead( DeviceIndex, AUR_EEPROM_READ , EEPROM_SERIAL_NUMBER_ADDRESS, 0 , &buffer_data, &bytes_read );
+
     if( result != AIOUSB_SUCCESS )
         goto out_GetDeviceSerialNumber;
 
-    *pSerialNumber = (unsigned long)buffer_data;
+    *pSerialNumber = buffer_data;
 
 out_GetDeviceSerialNumber:
 
@@ -157,7 +158,7 @@ out_GetDeviceSerialNumber:
 }
 
 /*----------------------------------------------------------------------------*/
-unsigned long GetDeviceBySerialNumber(unsigned long *pSerialNumber) 
+unsigned long GetDeviceBySerialNumber(uint64_t *pSerialNumber) 
 {
     unsigned long deviceIndex = diNone;
 
@@ -168,7 +169,7 @@ unsigned long GetDeviceBySerialNumber(unsigned long *pSerialNumber)
     for(index = 0; index < MAX_USB_DEVICES; index++) {
           if(deviceTable[ index ].usb_device != NULL) {
 
-                unsigned long deviceSerialNumber;
+                uint64_t deviceSerialNumber;
                 unsigned long result = GetDeviceSerialNumber(index, &deviceSerialNumber);
 
                 if( result == AIOUSB_SUCCESS && deviceSerialNumber == *pSerialNumber ) {
@@ -186,33 +187,62 @@ unsigned long GetDeviceBySerialNumber(unsigned long *pSerialNumber)
 }
 
 /*----------------------------------------------------------------------------*/
-AIORESULT FindDevices( int **indices, int *length , int minProductID, int maxProductID  )
+AIORESULT FindDevices( int **where, int *length , int minProductID, int maxProductID  )
 {
     unsigned long deviceMask = AIOUSB_GetAllDevices();
+    static int indices[MAX_USB_DEVICES];
     int index = 0;
     AIORESULT retval = AIOUSB_ERROR_DEVICE_NOT_FOUND;
+    *length = 0;
 
     while ( deviceMask  ) {
         if ( deviceMask & 1 ) {
-            if ( deviceTable[index].ProductID >= (unsigned)minProductID && deviceTable[index].ProductID <= (unsigned)maxProductID ) {
-                *length += 1; 
-                *indices = (int *)realloc( *indices, (*length)*sizeof(int));
-                *indices[*length-1] = index;
+            if ( deviceTable[index].ProductID >= (unsigned)minProductID && 
+                 deviceTable[index].ProductID <= (unsigned)maxProductID ) {
+                indices[(*length)++] = index;
                 retval = AIOUSB_SUCCESS;
             }
         }
         index++;
         deviceMask >>= 1;
     }
+    if ( retval == AIOUSB_SUCCESS )
+        *where = indices;
     return retval;
 }
+
+
+/*----------------------------------------------------------------------------*/
+AIORESULT AIOUSB_FindDevices( int **where, int *length , AIOUSB_BOOL (*is_ok_device)( AIOUSBDevice *dev )  )
+{
+    unsigned long deviceMask = AIOUSB_GetAllDevices();
+    static int indices[MAX_USB_DEVICES];
+    int index = 0;
+    AIORESULT retval = AIOUSB_ERROR_DEVICE_NOT_FOUND;
+    *length = 0;
+
+    while ( deviceMask  ) {
+        if ( deviceMask & 1 ) {
+            if ( is_ok_device( &deviceTable[index] ) == AIOUSB_TRUE )  { 
+                retval = AIOUSB_SUCCESS;
+                indices[(*length)++] = index;
+            }
+        }
+        index++;
+        deviceMask >>= 1;
+    }
+    if ( retval == AIOUSB_SUCCESS )
+        *where = indices;
+    return retval;
+}
+
 
 /*----------------------------------------------------------------------------*/
 /**
  * @brief AIOUSB_GetDeviceProperties() returns a richer amount of information 
  * than QueryDeviceInfo()
  */
-unsigned long AIOUSB_GetDeviceProperties(unsigned long DeviceIndex,DeviceProperties *properties ) 
+unsigned long AIOUSB_GetDeviceProperties(unsigned long DeviceIndex, DeviceProperties *properties ) 
 {
     AIORESULT result = AIOUSB_SUCCESS;
     AIOUSBDevice *deviceDesc = AIODeviceTableGetDeviceAtIndex( DeviceIndex, &result );

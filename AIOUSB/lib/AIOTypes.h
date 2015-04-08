@@ -2,7 +2,7 @@
  * @file   AIOTypes.h
  * @author $Format: %an <%ae>$
  * @date   $Format: %ad$
- * @version $Format: %t$
+ * @version $Format: %h$
  * @brief  
  *
  */
@@ -55,6 +55,18 @@ typedef struct ushort_array {
 namespace AIOUSB {
 #endif
 
+#ifndef __cplusplus
+#define LAMBDA(return_type, header, function_body)                      \
+    ({                                                                  \
+        return_type __fn ## __FILE__ ## __LINE__ header function_body   \
+            __fn ## __FILE__ ## __LINE__ ;                              \
+    })
+#else
+#define LAMBDA(return_type, header, function_body)      \
+    [] header -> return_type function_body
+#endif
+
+    /* LAMBDA( AIOUSB_BOOL, ( AIOUSBDevice *dev ), {  } ); */
 
 
 
@@ -588,7 +600,7 @@ typedef struct {
 
 typedef struct  {
     char *Name;                      /**< null-terminated device name or 0 */
-    unsigned long SerialNumber;      /**< 64-bit serial number or 0 */
+    uint64_t SerialNumber;           /**< 64-bit serial number or 0 */
     unsigned ProductID;              /**< 16-bit product ID */
     unsigned DIOPorts;               /**< number of digital I/O ports (bytes) */
     unsigned Counters;               /**< number of 8254 counter blocks */

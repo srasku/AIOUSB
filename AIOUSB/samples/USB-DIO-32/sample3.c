@@ -2,7 +2,7 @@
  * @file   AIOUSB_Core.h
  * @author $Format: %an <%ae>$
  * @date   $Format: %ad$
- * @release $Format: %t$
+ * @release $Format: %h$
  * @ingroup samples
  * @brief  
  *
@@ -77,7 +77,7 @@ int main( int argc, char **argv ) {
         unsigned long nameSize;
         unsigned long numDIOBytes;
         unsigned long numCounters;
-        unsigned long serialNumber;
+        uint64_t serialNumber;
         int index;
     } deviceTable[ DEVICES_REQUIRED ];
     struct DeviceInfo *device;

@@ -2,7 +2,7 @@
  * @file   AIOContinuousBuffer.h
  * @author $Format: %an <%ae>$
  * @date   $Format: %ad$
- * @version $Format: %t$
+ * @version $Format: %h$
  * @brief  
  *
  */
@@ -69,6 +69,8 @@ typedef struct aio_continuous_buf {
     AIORET_TYPE (*PopN)( struct aio_continuous_buf *buf, unsigned short *frombuf, unsigned int N );
 } AIOContinuousBuf;
 
+#define ROOTCLOCK 10000000
+
 /*-----------------------------  Constructors  ------------------------------*/
 PUBLIC_EXTERN AIOContinuousBuf *NewAIOContinuousBuf( unsigned long DeviceIndex , unsigned scancounts, unsigned number_channels );
 PUBLIC_EXTERN AIOContinuousBuf *NewAIOContinuousBufWithoutConfig( unsigned long DeviceIndex, unsigned scancounts , unsigned num_channels , AIOUSB_BOOL counts );
@@ -83,7 +85,7 @@ PUBLIC_EXTERN AIOContinuousBuf *NewAIOContinuousBufRawSmart( unsigned long Devic
 PUBLIC_EXTERN void DeleteAIOContinuousBuf( AIOContinuousBuf *buf );
 
 /*-----------------------------  Replacements  ------------------------------*/
-PUBLIC_EXTERN AIORET_TYPE AIOContinuousBufCopyData( AIOContinuousBuf *buf , unsigned short *data , unsigned *size );
+
 
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBufInitConfiguration(  AIOContinuousBuf *buf );
 PUBLIC_EXTERN AIORET_TYPE AIOContinuousBufInitADCConfigBlock( AIOContinuousBuf *buf, 

@@ -33,7 +33,8 @@ AIOFifo.o\
 USBDevice.o
 
 
-HEADERS	:=	$(wildcard *.h)
+HEADERS		:= $(wildcard *.h)
+TESTOBJS	:= $(wildcard $(PWD)/tests/*_test)
 
 include $(AIOUSB_ROOT)/Mkfiles/oses.inc
 
@@ -84,11 +85,11 @@ TESTFLAGS	:= -g
 SHARED_LIBS	:=  -lusb-1.0 -pthread -lm
 override CXXFLAGS += -I. -I/usr/include/libusb-1.0 -D__aiousb_cplusplus
 
-.PHONY : all testit
+.PHONY : all bist
 
 all : $(LIBS)
 
-testit:
+bist:
 	@echo $(CPPDBGOBJS)
 	@echo $(OSTYPE)
 	@echo $(CC_SHFLAGS)
@@ -100,8 +101,13 @@ testit:
 	@echo "CPPDBGOBJS=$(CPPDBGOBJS)"
 	@echo "CPPEXTRAOBJS=$(CPPEXTRAOBJS)"
 	@echo "Headers=$(HEADERS)"
+	@echo "tests: $(TESTOBJS)"
+
+GTAGS_FILES	:= GPATH GRTAGS GSYMS GTAGS
 
 all_cscope: $(LIBS) cscope
+
+
 
 #*******************************  LIBRARIES  ********************************
 
@@ -164,7 +170,7 @@ endif
 EXTRA_COPTS		:= -D_GNU_SOURCE
 SELF_TEST_FLAGS		:= -DSELF_TEST
 SELF_TEST_LIBS		:= -lm -laiousbdbg -lusb-1.0
-SELF_TEST_CXX_FLAGS	:= -D__aiousb_cplusplus -DSELF_TEST $(CXXFLAGS) -std=gnu++0x
+SELF_TEST_CXX_FLAGS	:= -D__aiousb_cplusplus -DSELF_TEST $(CXXFLAGS) -std=c++11
 SELF_TEST_CXX_LIBS	:= $(SELF_TEST_LIBS) -laiousbcppdbg -lgtest -lpthread
 
 PYCFLAGS		= $(DEBUGOPTS) $(COMMONOPTS)
@@ -204,18 +210,18 @@ pywrapper:
 	$(CXX) $(TESTFLAGS) $(SELF_TEST_CXX_FLAGS) $(subst _cpp_test,.c,$<) -o $@ -L. $(SELF_TEST_CXX_LIBS) $(LDFLAGS)
 
 tests/%_cpp_test: tests/%.cpp $(SHCDBGLIB) $(SHCPPDBGLIB)
-	$(CXX) $(TESTFLAGS) $(SELF_TEST_CXX_FLAGS) $< -o $@ -L. $(SELF_TEST_CXX_LIBS)
+	$(CXX) $(TESTFLAGS) $(CXXFLAGS) $(SELF_TEST_CXX_FLAGS) $< -o $@ -L. $(SELF_TEST_CXX_LIBS)
 
 mostlyclean:
-	-rm -f $(COBJS) $(CDBGOBJS) $(CPPOBJS) $(CPPDBGOBJS) 
+	-rm -f $(COBJS) $(CDBGOBJS) $(CPPOBJS) $(CPPDBGOBJS)
 
 clean:
-	-rm -f $(COBJS) $(CDBGOBJS) $(CPPOBJS) $(CPPDBGOBJS) cscope.out
+	-rm -f $(COBJS) $(CDBGOBJS) $(CPPOBJS) $(CPPDBGOBJS) $(GTAGS_FILES) $(TESTOBJS)
 
 distclean: 
 	-rm -f $(LIBS) $(COBJS) $(CDBGOBJS) $(CPPOBJS) $(CPPDBGOBJS) cscope.out *_test* *.tap *.mexglx
-cscope:	
-	cscope -b 
+gtags:	
+	gtags
 
 matlab: 
 	@if [ -z "$$MATLAB_BIN_DIR" ] ; then echo "You must set MATLAB_BIN_DIR to the path to matlab binary"; exit 1; fi

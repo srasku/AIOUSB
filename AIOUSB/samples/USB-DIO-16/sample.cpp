@@ -2,7 +2,7 @@
  * @file   AIOContinuousBuffer.c
  * @author  $Format: %an <%ae>$
  * @date   $Format: %ad$
- * @release $Format: %t$
+ * @release $Format: %h$
  * @brief AIOUSB sample program 
  * @todo Make the number of channels in the ContinuousBuffer match the number of channels in the
  *       config object
@@ -75,7 +75,7 @@ int main( int argc, char **argv ) {
 			 * search for two USB-DIO-16A devices; the first one will be the
 			 * sender of data, and the second one will be the receiver
 			 */
-			unsigned long serialNumber1 = 0		// serial number of sender board
+			uint64_t serialNumber1 = 0		// serial number of sender board
 				, serialNumber2 = 0;			// serial number of receiver board
 			int deviceIndex1 = -1
 				, deviceIndex2 = -1

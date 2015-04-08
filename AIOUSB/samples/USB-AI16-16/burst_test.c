@@ -2,7 +2,7 @@
  * @file   burst_test.c
  * @author $Format: %an <%ae>$
  * @date   $Format: %ad$
- * @release $Format: %t$
+ * @release $Format: %h$
  * @brief  
  */
 
@@ -60,7 +60,8 @@ main(int argc, char *argv[] )
     struct timespec foo , bar;
 
     AIORET_TYPE retval = AIOUSB_SUCCESS;
-
+    int *indices;
+    int num_devices;
     process_cmd_line( &options, argc, argv );
 
     int tobufsize = (options.num_scans+1)*options.number_channels*20;
@@ -74,7 +75,25 @@ main(int argc, char *argv[] )
 
     AIOUSB_Init();
     GetDevices();
-    buf = (AIOContinuousBuf *)NewAIOContinuousBufForCounts( 0, options.num_scans, options.number_channels );
+    AIOUSB_BOOL fnd( AIOUSBDevice *dev ) { 
+        if ( dev->ProductID >= USB_AI16_16A && dev->ProductID <= USB_AI12_128E ) { 
+            return AIOUSB_TRUE;
+        } else if ( dev->ProductID >=  USB_AIO16_16A && dev->ProductID <= USB_AIO12_128E ) {
+            return AIOUSB_TRUE;
+        } else {
+            return AIOUSB_FALSE;
+        }
+    }
+
+    AIOUSB_FindDevices( &indices, &num_devices, fnd );
+
+   
+    if ( num_devices <= 0 ) {
+        fprintf(stderr,"No devices were found\n");
+        exit(1);
+    }    
+
+    buf = (AIOContinuousBuf *)NewAIOContinuousBufForCounts( indices[0], options.num_scans, options.number_channels );
     if( !buf ) {
       fprintf(stderr,"Can't allocate memory for temporary buffer \n");
       _exit(1);
@@ -154,20 +173,22 @@ main(int argc, char *argv[] )
     int scans_read = 0;
     while ( buf->status == RUNNING || read_count < options.num_scans ) {
 
-        if ( (scans_remaining = AIOContinuousBufCountScansAvailable(buf) ) ) { 
+        if ( (scans_remaining = AIOContinuousBufCountScansAvailable(buf) ) > 0 ) { 
 
             if ( scans_remaining ) { 
                 if ( options.with_timing )
                     clock_gettime( CLOCK_MONOTONIC_RAW, &foo );
+
                 scans_read = AIOContinuousBufReadIntegerScanCounts( buf, tobuf, tobufsize, AIOContinuousBufNumberChannels(buf)*AIOContinuousBufCountScansAvailable(buf) );
+
                 if ( options.with_timing )
                     clock_gettime( CLOCK_MONOTONIC_RAW, &bar );
 
                 read_count += scans_read;
 
                 if ( options.verbose )
-                    fprintf(stdout,"Waiting : total=%u, readpos=%d, writepos=%d\n", read_count, 
-                            AIOContinuousBufGetReadPosition(buf), AIOContinuousBufGetWritePosition(buf));
+                    fprintf(stdout,"Waiting : total=%u, readpos=%d, writepos=%d, scans_read=%d\n", read_count, 
+                            AIOContinuousBufGetReadPosition(buf), AIOContinuousBufGetWritePosition(buf), scans_read);
 
                 for( int scan_count = 0; scan_count < scans_read ; scan_count ++ ) { 
                     if( options.with_timing )

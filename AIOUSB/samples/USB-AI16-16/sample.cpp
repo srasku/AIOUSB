@@ -11,7 +11,7 @@ int main( int argc, char **argv ) {
     unsigned short counts[ MAX_CHANNELS ];
     double volts[ MAX_CHANNELS ];
     unsigned char gainCodes[ NUM_CHANNELS ];
-    unsigned long serialNumber;
+    uint64_t serialNumber;
     unsigned long result;
     unsigned long deviceMask;
     int MAX_NAME_SIZE = 20;
@@ -78,8 +78,9 @@ int main( int argc, char **argv ) {
 
     AIOUSB_Reset( deviceIndex );
     result = GetDeviceSerialNumber( deviceIndex, &serialNumber );
+
     if( result == AIOUSB_SUCCESS )
-        printf( "Serial number of device at index %lu: %llx\n", deviceIndex, ( long long ) serialNumber );
+        printf( "Serial number of device at index %llx\n", (long long)serialNumber  );
     else
         printf( "Error '%s' getting serial number of device at index %lu\n",
                 AIOUSB_GetResultCodeAsString( result ),

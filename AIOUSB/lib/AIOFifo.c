@@ -2,7 +2,7 @@
  * @file   AIOFifo.c
  * @author $Format: %an <%ae>$
  * @date   $Format: %ad$
- * @version $Format: %t$
+ * @version $Format: %h$
  * @brief  General structure for AIOUSB Fifo
  *
  */
@@ -31,11 +31,9 @@ AIORET_TYPE AIOFifoSizeRemaining( void *tmpfifo )
     return fifo->delta((AIOFifo*)fifo);
 }
 
-
-
 size_t rdelta( AIOFifo *fifo  ) 
 {
-    return ( fifo->read_pos < fifo->write_pos ? (fifo->write_pos - fifo->read_pos ) : ( (fifo->size - fifo->read_pos) + fifo->write_pos ));
+    return ( fifo->read_pos <= fifo->write_pos ? (fifo->write_pos - fifo->read_pos ) : ( (fifo->size - fifo->read_pos) + fifo->write_pos ));
 }
 
 AIORET_TYPE AIOFifoReadSize( void *tmpfifo )
@@ -76,6 +74,7 @@ void AIOFifoInitialize( AIOFifo *nfifo, unsigned int size, unsigned refsize )
     nfifo->Write    = AIOFifoWrite;
     nfifo->Reset    = AIOFifoReset;
     nfifo->delta    = delta;
+    nfifo->rdelta   = rdelta;
     nfifo->_calculate_size_write = _calculate_size_write;
     nfifo->_calculate_size_read  = _calculate_size_read;
 #ifdef HAS_THREAD
