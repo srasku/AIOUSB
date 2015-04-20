@@ -241,66 +241,73 @@ int main( int argc, char **argv ) {
     printf("Using Clock speed %d to acquire data\n", (int)CLOCK_SPEED);
     AIOUSB_SetMiscClock( deviceIndex, CLOCK_SPEED );
     /* exit(0); */
-    result = ADC_BulkAcquire( deviceIndex, BULK_BYTES, dataBuf );
+
+    int acquisition;
+    for (acquisition = 0; acquisition < 2; ++acquisition)
+    {
+	result = ADC_BulkAcquire( deviceIndex, BULK_BYTES, dataBuf );
 
 
-    if( result == AIOUSB_SUCCESS )
-        printf( "Started bulk acquire of %d bytes\n", BULK_BYTES );
-    else
-        printf( "Error '%s' attempting to start bulk acquire of %d bytes\n", 
-                AIOUSB_GetResultCodeAsString( result ), 
-                BULK_BYTES );
-    /*
-     * use bulk poll to monitor progress
-     */
-    if( result == AIOUSB_SUCCESS ) {
-        unsigned long bytesRemaining = BULK_BYTES;
-        for( int seconds = 0; seconds < 100; seconds++ ) {
-            sleep( 1 );
-            result = ADC_BulkPoll( deviceIndex, &bytesRemaining );
-            if( result == AIOUSB_SUCCESS ) {
-                printf( "  %lu bytes remaining\n", bytesRemaining );
-                if( bytesRemaining == 0 )
-                    break;
-            } else {
-                printf( "Error '%s' polling bulk acquire progress\n", 
-                        AIOUSB_GetResultCodeAsString( result ) );
-                sleep(1);
-                break;
-            }
-        }
+	if( result == AIOUSB_SUCCESS )
+	    printf( "Started bulk acquire of %d bytes\n", BULK_BYTES );
+	else
+	    printf( "Error '%s' attempting to start bulk acquire of %d bytes\n", 
+		    AIOUSB_GetResultCodeAsString( result ), 
+		    BULK_BYTES );
+	/*
+	 * use bulk poll to monitor progress
+	 */
+	if( result == AIOUSB_SUCCESS ) {
+	    unsigned long bytesRemaining = BULK_BYTES;
+	    for( int seconds = 0; seconds < 100; seconds++ ) {
+		sleep( 1 );
+		result = ADC_BulkPoll( deviceIndex, &bytesRemaining );
+		if( result == AIOUSB_SUCCESS ) {
+		    printf( "  %lu bytes remaining\n", bytesRemaining );
+		    if( bytesRemaining == 0 )
+			break;
+		} else {
+		    printf( "Error '%s' polling bulk acquire progress\n", 
+			    AIOUSB_GetResultCodeAsString( result ) );
+		    sleep(1);
+		    break;
+		}
+	    }
 
-        /*
-         * turn off timer-triggered mode
-         */
-        ADC_ADMode( deviceIndex, 0, AD_CAL_MODE_NORMAL );
+	    /*
+	     * turn off timer-triggered mode
+	     */
+	    ADC_ADMode( deviceIndex, 0, AD_CAL_MODE_NORMAL );
 
-        /*
-         * if all the data was apparently received, scan it for zeros; it's
-         * unlikely that any of the data would be zero, so any zeros, particularly
-         * a large block of zeros would suggest that the data is not valid
-         */
-        if( result == AIOUSB_SUCCESS && bytesRemaining == 0 ) {
-            AIOUSB_BOOL anyZeroData = AIOUSB_FALSE;
-            int zeroIndex = -1;
-            for( int index = 0; index < BULK_BYTES / ( int ) sizeof( unsigned short ); index++ ) {
-                if( dataBuf[ index ] == 0 ) {
-                    anyZeroData = AIOUSB_TRUE;
-                    if( zeroIndex < 0 )
-                        zeroIndex = index;
-                } else {
-                    /* if( zeroIndex >= 0 ) { */
-                    /*     printf( "  Zero data from index %d to %d\n", zeroIndex, index - 1 ); */
-                    /*     zeroIndex = -1; */
-                    /* } */
-                }
-            }
-            if( anyZeroData == AIOUSB_FALSE )
-                printf( "Successfully bulk acquired %d bytes\n", BULK_BYTES );
-        } else {
-            printf( "Failed to bulk acquire %d bytes: %d\n",  BULK_BYTES , (int)result );
-            result = -3;
-        }
+	    /*
+	     * if all the data was apparently received, scan it for zeros; it's
+	     * unlikely that any of the data would be zero, so any zeros, particularly
+	     * a large block of zeros would suggest that the data is not valid
+	     */
+	    if( result == AIOUSB_SUCCESS && bytesRemaining == 0 ) {
+		AIOUSB_BOOL anyZeroData = AIOUSB_FALSE;
+		int zeroIndex = -1;
+		for( int index = 0; index < BULK_BYTES / ( int ) sizeof( unsigned short ); index++ ) {
+		    if (index % NUM_CHANNELS == 0) printf("\n");
+		    printf("%04x ", dataBuf[index]);
+		    if( dataBuf[ index ] == 0 ) {
+			anyZeroData = AIOUSB_TRUE;
+			if( zeroIndex < 0 )
+			    zeroIndex = index;
+		    } else {
+			/* if( zeroIndex >= 0 ) { */
+			/*     printf( "  Zero data from index %d to %d\n", zeroIndex, index - 1 ); */
+			/*     zeroIndex = -1; */
+			/* } */
+		    }
+		}
+		if( anyZeroData == AIOUSB_FALSE )
+		    printf( "Successfully bulk acquired %d bytes\n", BULK_BYTES );
+	    } else {
+		printf( "Failed to bulk acquire %d bytes: %d\n",  BULK_BYTES , (int)result );
+		result = -3;
+	    }
+	}
     }
 
     free( dataBuf );
