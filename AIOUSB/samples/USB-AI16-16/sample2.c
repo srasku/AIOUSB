@@ -50,7 +50,7 @@ int main( int argc, char **argv ) {
 
     int BULK_BYTES = NUM_SCANS * NUM_CHANNELS * sizeof( unsigned short ) * (NUM_OVERSAMPLES+1);
 
-    double CLOCK_SPEED = (500000 * options.clock_scale ) / ( NUM_CHANNELS * (NUM_OVERSAMPLES+1) );
+    double CLOCK_SPEED = (1600 * options.clock_scale ) / ( NUM_CHANNELS * (NUM_OVERSAMPLES+1) );
 
     printf("USB-AI16-16A sample program version %s, %s\n"
            "  This program demonstrates controlling a USB-AI16-16A device on\n"
