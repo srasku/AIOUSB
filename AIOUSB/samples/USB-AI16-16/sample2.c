@@ -42,8 +42,9 @@ int main( int argc, char **argv ) {
     int NUM_OVERSAMPLES  = options.num_oversamples;
     int NUM_SCANS        = options.num_scans;
    
-
+#if GROUND_CALIBRATION
     unsigned short counts[ MAX_CHANNELS ];
+#endif
     double volts[ MAX_CHANNELS ];
     unsigned char gainCodes[ NUM_CHANNELS ];
 
@@ -151,6 +152,7 @@ int main( int argc, char **argv ) {
     else
         printf( "Error '%s' performing automatic A/D calibration\n", AIOUSB_GetResultCodeAsString( result ) );
 
+#if GROUND_CALIBRATION
     /*
      * verify that A/D ground calibration is correct
      */
@@ -173,6 +175,7 @@ int main( int argc, char **argv ) {
         printf( "Reference counts = %u (should be approx. 65130)\n", counts[ CAL_CHANNEL ] );
     else
         printf( "Error '%s' attempting to read reference counts\n", AIOUSB_GetResultCodeAsString( result ) );
+#endif
 
     /*
      * demonstrate scanning channels and measuring voltages
