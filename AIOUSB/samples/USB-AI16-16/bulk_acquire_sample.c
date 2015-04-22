@@ -298,8 +298,8 @@ int main( int argc, char **argv ) {
 		AIOUSB_BOOL anyZeroData = AIOUSB_FALSE;
 		int zeroIndex = -1;
 		for( int index = 0; index < BULK_BYTES / ( int ) sizeof( unsigned short ); index++ ) {
-		    if (index % NUM_CHANNELS == 0) printf("\n");
-		    printf("%04x ", dataBuf[index]);
+		    /* if (index % NUM_CHANNELS == 0) printf("\n");
+		    printf("%04x ", dataBuf[index]); */
 		    if( dataBuf[ index ] == 0 ) {
 			anyZeroData = AIOUSB_TRUE;
 			if( zeroIndex < 0 )
