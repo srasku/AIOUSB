@@ -44,9 +44,7 @@ int main( int argc, char **argv ) {
     int NUM_SCANS        = options.num_scans;
     
    
-#if GROUND_CALIBRATION
     unsigned short counts[ MAX_CHANNELS ];
-#endif
     double volts[ MAX_CHANNELS ];
     unsigned char gainCodes[ NUM_CHANNELS ];
 
